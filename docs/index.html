@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InboxDNA — Local-first Gmail inbox analyzer and cleanup tool</title>
+<meta name="description" content="Analyze and clean up your Gmail inbox without your emails ever leaving your machine. Free, open source, and 100% local.">
+<meta name="theme-color" content="#1a73e8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧬</text></svg>">
+<style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --primary: #1a73e8;
+  --primary-dark: #1557b0;
+  --primary-light: #e8f0fe;
+  --text: #1f2937;
+  --text-secondary: #6b7280;
+  --bg: #ffffff;
+  --bg-alt: #f8fafc;
+  --bg-dark: #0f172a;
+  --bg-dark-alt: #1e293b;
+  --surface: #ffffff;
+  --border: #e5e7eb;
+  --code-bg: #1e293b;
+  --code-text: #e2e8f0;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 25px rgba(0,0,0,0.08), 0 4px 10px rgba(0,0,0,0.04);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --transition: 0.2s ease;
+  --max-width: 1120px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --bg: #0f172a;
+    --bg-alt: #1e293b;
+    --bg-dark: #020617;
+    --bg-dark-alt: #0f172a;
+    --surface: #1e293b;
+    --border: #334155;
+    --primary-light: #1e3a5f;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.3);
+  }
+}
+
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a { color: var(--primary); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+img { max-width: 100%; display: block; }
+
+/* ===== Layout ===== */
+.container { max-width: var(--max-width); margin: 0 auto; padding: 0 24px; }
+
+section { padding: 80px 0; }
+@media (max-width: 640px) { section { padding: 56px 0; } }
+
+.section-label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 12px;
+}
+
+.section-title {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.section-subtitle {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  max-width: 600px;
+  line-height: 1.6;
+}
+
+/* ===== Navigation ===== */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  transition: background var(--transition);
+}
+
+.nav-inner {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nav-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1.125rem;
+  color: #fff;
+  text-decoration: none;
+}
+
+.nav-brand span { font-size: 1.375rem; }
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: #cbd5e1;
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-decoration: none;
+  transition: color var(--transition);
+}
+
+.nav-links a:hover { color: #fff; text-decoration: none; }
+
+.nav-cta {
+  background: var(--primary);
+  color: #fff !important;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  transition: background var(--transition);
+}
+
+.nav-cta:hover { background: var(--primary-dark); }
+
+.nav-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+}
+
+@media (max-width: 768px) {
+  .nav-toggle { display: block; }
+  .nav-links {
+    display: none;
+    position: absolute;
+    top: 60px;
+    left: 0;
+    right: 0;
+    background: rgba(15, 23, 42, 0.97);
+    flex-direction: column;
+    padding: 20px 24px;
+    gap: 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+  .nav-links.open { display: flex; }
+  .nav-links a { font-size: 1rem; }
+}
+
+/* ===== Hero ===== */
+.hero {
+  background: var(--bg-dark);
+  color: #f1f5f9;
+  padding: 140px 0 100px;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 70% 20%, rgba(26, 115, 232, 0.12) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 20% 80%, rgba(26, 115, 232, 0.06) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.hero .container { position: relative; z-index: 1; }
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(26, 115, 232, 0.12);
+  border: 1px solid rgba(26, 115, 232, 0.25);
+  color: #93c5fd;
+  padding: 6px 14px;
+  border-radius: 100px;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  margin-bottom: 28px;
+}
+
+.hero-badge svg { width: 14px; height: 14px; }
+
+.hero h1 {
+  font-size: clamp(2.25rem, 6vw, 3.5rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 20px;
+  max-width: 700px;
+}
+
+.hero h1 em {
+  font-style: normal;
+  background: linear-gradient(135deg, #60a5fa, #3b82f6, #1d4ed8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.hero-description {
+  font-size: 1.1875rem;
+  color: #94a3b8;
+  max-width: 540px;
+  margin-bottom: 36px;
+  line-height: 1.7;
+}
+
+.hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  margin-bottom: 36px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-decoration: none;
+  transition: all var(--transition);
+  border: none;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover { background: var(--primary-dark); text-decoration: none; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(26, 115, 232, 0.35); }
+
+.btn-secondary {
+  background: rgba(255,255,255,0.06);
+  color: #f1f5f9;
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+.btn-secondary:hover { background: rgba(255,255,255,0.1); text-decoration: none; transform: translateY(-1px); }
+
+.btn svg { width: 18px; height: 18px; }
+
+.hero-code {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--code-bg);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--radius-sm);
+  padding: 12px 18px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.875rem;
+  color: var(--code-text);
+}
+
+.hero-code .prompt { color: #64748b; user-select: none; }
+.hero-code .cmd { color: #93c5fd; }
+.hero-code .pkg { color: #f1f5f9; }
+
+.hero-code-copy {
+  background: none;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: color var(--transition);
+}
+
+.hero-code-copy:hover { color: #e2e8f0; }
+.hero-code-copy svg { width: 16px; height: 16px; }
+
+.hero-platforms {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  color: #64748b;
+  font-size: 0.8125rem;
+}
+
+.hero-platforms span { display: flex; align-items: center; gap: 6px; }
+
+/* ===== Why Section ===== */
+.why { background: var(--bg); }
+
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 20px;
+  margin-top: 48px;
+}
+
+.why-card {
+  padding: 32px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+
+.why-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+
+.why-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.375rem;
+  margin-bottom: 20px;
+}
+
+.why-card h3 {
+  font-size: 1.125rem;
+  font-weight: 650;
+  margin-bottom: 10px;
+  letter-spacing: -0.01em;
+}
+
+.why-card p { color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.65; }
+
+.comparison {
+  margin-top: 48px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.comparison table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+  min-width: 500px;
+}
+
+.comparison th, .comparison td {
+  padding: 14px 20px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.comparison th {
+  font-weight: 600;
+  font-size: 0.8125rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  background: var(--bg-alt);
+}
+
+.comparison th:first-child { border-radius: var(--radius-sm) 0 0 0; }
+.comparison th:last-child { border-radius: 0 var(--radius-sm) 0 0; }
+
+.comparison td:first-child { font-weight: 500; }
+
+.check { color: #16a34a; font-weight: 700; }
+.cross { color: #dc2626; }
+
+.comparison tr.highlight { background: var(--primary-light); }
+.comparison tr.highlight td:first-child { font-weight: 700; color: var(--primary); }
+
+/* ===== Features ===== */
+.features { background: var(--bg-alt); }
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 18px;
+  margin-top: 48px;
+}
+
+.feature-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 28px;
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+
+.feature-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
+
+.feature-card-icon {
+  font-size: 1.625rem;
+  margin-bottom: 14px;
+  display: block;
+  line-height: 1;
+}
+
+.feature-card h3 {
+  font-size: 1rem;
+  font-weight: 650;
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.feature-card p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+/* ===== Install ===== */
+.install { background: var(--bg); }
+
+.install-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 24px;
+  margin-top: 48px;
+}
+
+.install-option {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 32px;
+  position: relative;
+}
+
+.install-option-badge {
+  position: absolute;
+  top: -10px;
+  left: 24px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 4px 12px;
+  border-radius: 100px;
+}
+
+.install-option h3 {
+  font-size: 1.125rem;
+  font-weight: 650;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.install-option h3 span { font-size: 1.25rem; }
+
+.install-option > p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.code-block {
+  background: var(--code-bg);
+  border-radius: var(--radius-sm);
+  padding: 18px;
+  overflow-x: auto;
+  position: relative;
+}
+
+.code-block code {
+  font-family: 'SF Mono', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', Consolas, monospace;
+  font-size: 0.8125rem;
+  color: var(--code-text);
+  line-height: 1.7;
+  white-space: pre;
+}
+
+.code-block .line-comment { color: #64748b; }
+.code-block .line-cmd { color: #93c5fd; }
+.code-block .line-str { color: #86efac; }
+
+.code-copy-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #94a3b8;
+  border-radius: 6px;
+  padding: 6px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  font-family: inherit;
+  transition: all var(--transition);
+}
+
+.code-copy-btn:hover { background: rgba(255,255,255,0.12); color: #e2e8f0; }
+.code-copy-btn svg { width: 14px; height: 14px; }
+
+/* ===== Privacy ===== */
+.privacy { background: var(--bg-alt); }
+
+.privacy-content {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+  margin-top: 48px;
+}
+
+@media (max-width: 768px) {
+  .privacy-content { grid-template-columns: 1fr; gap: 32px; }
+}
+
+.privacy-points { display: flex; flex-direction: column; gap: 24px; }
+
+.privacy-point {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.privacy-point-icon {
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  border-radius: 10px;
+  background: var(--primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.privacy-point h4 { font-size: 1rem; font-weight: 600; margin-bottom: 4px; }
+.privacy-point p { color: var(--text-secondary); font-size: 0.875rem; line-height: 1.55; }
+
+.privacy-visual {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 36px;
+  text-align: center;
+}
+
+.privacy-diagram {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.privacy-node {
+  background: var(--bg-alt);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 24px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: fit-content;
+}
+
+.privacy-node.highlight {
+  border-color: var(--primary);
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.privacy-arrow {
+  color: var(--primary);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.privacy-blocked {
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: #fef2f2;
+  border-radius: 6px;
+}
+
+@media (prefers-color-scheme: dark) {
+  .privacy-blocked { background: rgba(220, 38, 38, 0.1); }
+}
+
+.privacy-note {
+  margin-top: 20px;
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  line-height: 1.5;
+}
+
+/* ===== Footer ===== */
+.footer {
+  background: var(--bg-dark);
+  color: #94a3b8;
+  padding: 48px 0;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+.footer-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-brand span:first-child { font-size: 1.25rem; }
+
+.footer-brand-text {
+  font-weight: 600;
+  color: #f1f5f9;
+  font-size: 1rem;
+}
+
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  list-style: none;
+}
+
+.footer-links a {
+  color: #94a3b8;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: color var(--transition);
+}
+
+.footer-links a:hover { color: #e2e8f0; text-decoration: none; }
+.footer-links svg { width: 16px; height: 16px; }
+
+.footer-bottom {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 0.8125rem;
+}
+
+/* ===== Utilities ===== */
+.text-center { text-align: center; }
+.mx-auto { margin-left: auto; margin-right: auto; }
+
+/* Tooltip */
+.tooltip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e293b;
+  color: #f1f5f9;
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.tooltip.show { opacity: 1; }
+
+/* ===== Animations ===== */
+@media (prefers-reduced-motion: no-preference) {
+  .fade-in {
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+  .fade-in.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fade-in { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Navigation -->
+<nav class="nav" role="navigation" aria-label="Main navigation">
+  <div class="nav-inner">
+    <a href="#" class="nav-brand" aria-label="InboxDNA home">
+      <span>🧬</span> InboxDNA
+    </a>
+    <button class="nav-toggle" aria-label="Toggle menu" aria-expanded="false" onclick="toggleNav()">&#9776;</button>
+    <ul class="nav-links" id="navLinks">
+      <li><a href="#why">Why InboxDNA</a></li>
+      <li><a href="#features">Features</a></li>
+      <li><a href="#install">Install</a></li>
+      <li><a href="#privacy">Privacy</a></li>
+      <li><a href="https://github.com/blaiseratcliffe/inboxdna" class="nav-cta">GitHub</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero" id="hero">
+  <div class="container">
+    <div class="hero-badge">
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 1v14M1 8h14"/><circle cx="8" cy="8" r="5"/></svg>
+      Free &amp; open source (Apache 2.0)
+    </div>
+    <h1>Know your inbox.<br><em>Keep your privacy.</em></h1>
+    <p class="hero-description">
+      InboxDNA is a local-first Gmail analyzer and cleanup tool. Scan your inbox, find top senders, triage in bulk, track subscriptions, and reclaim storage &mdash; all without your emails ever leaving your machine.
+    </p>
+    <div class="hero-actions">
+      <a href="https://github.com/blaiseratcliffe/inboxdna/releases" class="btn btn-primary">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 2a1 1 0 011 1v7.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 10.586V3a1 1 0 011-1z"/><path d="M3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
+        Download
+      </a>
+      <a href="https://github.com/blaiseratcliffe/inboxdna" class="btn btn-secondary">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M10 0C4.477 0 0 4.477 0 10c0 4.42 2.865 8.166 6.839 9.489.5.092.682-.217.682-.482 0-.237-.009-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.463-1.11-1.463-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.831.092-.646.35-1.086.636-1.336-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.578 9.578 0 0110 4.836a9.578 9.578 0 012.504.337c1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C17.138 18.163 20 14.418 20 10c0-5.523-4.477-10-10-10z" clip-rule="evenodd"/></svg>
+        View on GitHub
+      </a>
+    </div>
+    <div class="hero-code">
+      <span class="prompt">$</span>
+      <span><span class="cmd">pip install</span> <span class="pkg">inboxdna</span></span>
+      <button class="hero-code-copy" onclick="copyText('pip install inboxdna', this)" aria-label="Copy install command" style="position:relative;">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V2.5A1.5 1.5 0 014.5 1H11"/></svg>
+      </button>
+    </div>
+    <div class="hero-platforms" style="margin-top:24px;">
+      <span>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M0 2.5h7.5V0H0v2.5zm8.5-2.5v2.5H16V0H8.5zM0 8.5h7.5V6H0v2.5zm8.5-2.5v2.5H16V6H8.5zM0 14.5h7.5V12H0v2.5zm8.5-2.5v2.5H16V12H8.5z"/></svg>
+        Windows
+      </span>
+      <span>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0a8 8 0 100 16A8 8 0 008 0zm3.5 11.5c-.2.3-.5.5-.9.5-.3 0-.5-.1-.8-.3L8 10l-1.8 1.7c-.3.2-.5.3-.8.3-.4 0-.7-.2-.9-.5-.2-.3-.2-.7 0-1L6.2 8 4.5 5.5c-.2-.3-.2-.7 0-1 .2-.3.5-.5.9-.5.3 0 .5.1.8.3L8 6l1.8-1.7c.3-.2.5-.3.8-.3.4 0 .7.2.9.5.2.3.2.7 0 1L9.8 8l1.7 2.5c.2.3.2.7 0 1z"/></svg>
+        macOS
+      </span>
+      <span>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C5.2 0 3 2.2 3 5v2H2v7h12V7h-1V5c0-2.8-2.2-5-5-5zm0 2c1.7 0 3 1.3 3 3v2H5V5c0-1.7 1.3-3 3-3z"/></svg>
+        Linux
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- Why InboxDNA -->
+<section class="why" id="why">
+  <div class="container">
+    <div class="fade-in">
+      <p class="section-label">Why InboxDNA</p>
+      <h2 class="section-title">Your emails deserve better than the cloud</h2>
+      <p class="section-subtitle">
+        Cloud-based email cleaners require full access to your mailbox on their servers. InboxDNA runs entirely on your computer.
+      </p>
+    </div>
+
+    <div class="why-grid fade-in">
+      <div class="why-card">
+        <div class="why-card-icon" style="background:#eff6ff;color:#1a73e8;">&#128274;</div>
+        <h3>100% local processing</h3>
+        <p>Your emails are analyzed on your machine. Nothing is sent to any server, ever. No cloud infrastructure, no API calls, no third-party access.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-card-icon" style="background:#f0fdf4;color:#16a34a;">&#128176;</div>
+        <h3>No subscriptions, no upsells</h3>
+        <p>Free forever. No freemium limits, no premium tiers, no recurring charges. Install it once and use it whenever you need it.</p>
+      </div>
+      <div class="why-card">
+        <div class="why-card-icon" style="background:#fefce8;color:#ca8a04;">&#128736;</div>
+        <h3>Open source and auditable</h3>
+        <p>Every line of code is on GitHub under the Apache 2.0 license. Inspect, modify, and contribute. Trust is earned, not demanded.</p>
+      </div>
+    </div>
+
+    <div class="comparison fade-in" style="margin-top:56px;">
+      <table>
+        <thead>
+          <tr>
+            <th></th>
+            <th>InboxDNA</th>
+            <th>Clean Email</th>
+            <th>SaneBox</th>
+            <th>Unroll.me</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="highlight">
+            <td>Emails stay on your machine</td>
+            <td class="check">&#10003;</td>
+            <td class="cross">&#10007;</td>
+            <td class="cross">&#10007;</td>
+            <td class="cross">&#10007;</td>
+          </tr>
+          <tr>
+            <td>No account required</td>
+            <td class="check">&#10003;</td>
+            <td class="cross">&#10007;</td>
+            <td class="cross">&#10007;</td>
+            <td class="cross">&#10007;</td>
+          </tr>
+          <tr>
+            <td>Free forever</td>
+            <td class="check">&#10003;</td>
+            <td class="cross">&#10007;</td>
+            <td class="cross">&#10007;</td>
+            <td class="check">&#10003;</td>
+          </tr>
+          <tr>
+            <td>Open source</td>
+            <td class="check">&#10003;</td>
+            <td class="cross">&#10007;</td>
+            <td class="cross">&#10007;</td>
+            <td class="cross">&#10007;</td>
+          </tr>
+          <tr>
+            <td>No data collection</td>
+            <td class="check">&#10003;</td>
+            <td class="cross">&#10007;</td>
+            <td class="cross">&#10007;</td>
+            <td class="cross">&#10007;</td>
+          </tr>
+          <tr>
+            <td>Works offline</td>
+            <td class="check">&#10003;</td>
+            <td class="cross">&#10007;</td>
+            <td class="cross">&#10007;</td>
+            <td class="cross">&#10007;</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features" id="features">
+  <div class="container">
+    <div class="text-center fade-in">
+      <p class="section-label">Features</p>
+      <h2 class="section-title" style="max-width:600px;" class="mx-auto">Everything you need to take back your inbox</h2>
+      <p class="section-subtitle mx-auto" style="margin-left:auto;margin-right:auto;">13 tools for analyzing, cleaning, and maintaining your Gmail &mdash; all running locally on your machine.</p>
+    </div>
+
+    <div class="features-grid fade-in">
+      <div class="feature-card">
+        <span class="feature-card-icon">&#128465;</span>
+        <h3>Bulk Cleanup</h3>
+        <p>Scan your inbox, see top senders ranked by volume, and delete, block, or unsubscribe from them in bulk.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">&#9889;</span>
+        <h3>Triage Mode</h3>
+        <p>Rapid one-click review per sender. Keep, archive, delete, block, or unsubscribe with a single action.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">&#127942;</span>
+        <h3>Inbox Hygiene Score</h3>
+        <p>A 0-100 composite score measuring inbox health, with streaks and badges to keep you motivated.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">&#128202;</span>
+        <h3>Storage Cost Visualizer</h3>
+        <p>Interactive treemap showing storage usage by sender, with Google One cost estimates for your inbox size.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">&#128225;</span>
+        <h3>Subscription Decay Radar</h3>
+        <p>Spot subscriptions you've stopped reading. See open rates and engagement trends over time.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">&#128340;</span>
+        <h3>Quiet Hours Heatmap</h3>
+        <p>Visualize when emails arrive throughout the week. Discover who's emailing you at 3am.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">&#128172;</span>
+        <h3>Reply Debt Tracker</h3>
+        <p>Find unanswered emails that may need a response. Never miss an important conversation again.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">&#9200;</span>
+        <h3>Inbox Time Machine</h3>
+        <p>Track how your inbox has grown and changed over time. See composition trends and growth patterns.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">&#128123;</span>
+        <h3>Ghost Rules</h3>
+        <p>Auto-suggest Gmail filters based on your triage patterns. Turn manual decisions into automated rules.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">&#129516;</span>
+        <h3>Email DNA Cards</h3>
+        <p>Deep profile for any sender: email frequency, tracking pixels, unsubscribe reliability, and dark patterns.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">&#128065;</span>
+        <h3>Privacy Audit</h3>
+        <p>Scan for tracking pixels, sensitive data exposure, and known tracker domains across your inbox.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">&#127761;</span>
+        <h3>Dark Mode</h3>
+        <p>Automatic theme switching that follows your OS preference, or toggle manually between light and dark.</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-card-icon">&#9000;</span>
+        <h3>Keyboard Shortcuts</h3>
+        <p>Navigate with J/K, select with X, archive with E, and press ? for the full shortcut reference.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Install -->
+<section class="install" id="install">
+  <div class="container">
+    <div class="text-center fade-in">
+      <p class="section-label">Install</p>
+      <h2 class="section-title">Up and running in under a minute</h2>
+      <p class="section-subtitle mx-auto" style="margin-left:auto;margin-right:auto;">Choose the install method that works best for you. No account needed.</p>
+    </div>
+
+    <div class="install-options fade-in">
+      <div class="install-option">
+        <span class="install-option-badge">Recommended</span>
+        <h3><span>&#128230;</span> pip install</h3>
+        <p>Install from PyPI. Requires Python 3.10 or later.</p>
+        <div class="code-block">
+          <button class="code-copy-btn" onclick="copyCode(this)" aria-label="Copy code">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V2.5A1.5 1.5 0 014.5 1H11"/></svg>
+            Copy
+          </button>
+          <code>pip install inboxdna
+inboxdna</code>
+        </div>
+      </div>
+
+      <div class="install-option">
+        <h3><span>&#128190;</span> Standalone binary</h3>
+        <p>Download a pre-built executable. No Python required.</p>
+        <div class="code-block">
+          <code><span class="line-comment"># Download from GitHub Releases:</span>
+<a href="https://github.com/blaiseratcliffe/inboxdna/releases" style="color:#93c5fd;">github.com/blaiseratcliffe/inboxdna/releases</a>
+
+<span class="line-comment"># Then run:</span>
+./inboxdna          <span class="line-comment"># macOS / Linux</span>
+inboxdna.exe        <span class="line-comment"># Windows</span></code>
+        </div>
+      </div>
+
+      <div class="install-option">
+        <h3><span>&#128187;</span> From source</h3>
+        <p>Clone the repository and install in development mode.</p>
+        <div class="code-block">
+          <button class="code-copy-btn" onclick="copyCode(this)" aria-label="Copy code">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V2.5A1.5 1.5 0 014.5 1H11"/></svg>
+            Copy
+          </button>
+          <code>git clone https://github.com/blaiseratcliffe/inboxdna.git
+cd inboxdna
+python -m venv venv
+source venv/bin/activate  <span class="line-comment"># Windows: venv\Scripts\activate</span>
+pip install -e .
+inboxdna</code>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Privacy -->
+<section class="privacy" id="privacy">
+  <div class="container">
+    <div class="fade-in">
+      <p class="section-label">Privacy</p>
+      <h2 class="section-title">Built for trust, not engagement</h2>
+      <p class="section-subtitle">InboxDNA was designed from day one with a simple principle: your emails are yours alone.</p>
+    </div>
+
+    <div class="privacy-content fade-in">
+      <div class="privacy-points">
+        <div class="privacy-point">
+          <div class="privacy-point-icon">&#128274;</div>
+          <div>
+            <h4>Runs on your machine only</h4>
+            <p>All email analysis happens locally. Your Gmail data is fetched directly to your computer and never relayed through external servers.</p>
+          </div>
+        </div>
+        <div class="privacy-point">
+          <div class="privacy-point-icon">&#128683;</div>
+          <div>
+            <h4>Zero telemetry</h4>
+            <p>No analytics, no crash reports, no usage tracking. InboxDNA makes zero network requests beyond your Gmail connection.</p>
+          </div>
+        </div>
+        <div class="privacy-point">
+          <div class="privacy-point-icon">&#128270;</div>
+          <div>
+            <h4>Fully auditable</h4>
+            <p>The entire codebase is open source under Apache 2.0. Read every line, verify every network call, build from source.</p>
+          </div>
+        </div>
+        <div class="privacy-point">
+          <div class="privacy-point-icon">&#128275;</div>
+          <div>
+            <h4>Revoke anytime</h4>
+            <p>InboxDNA uses standard OAuth. Remove access from your Google account settings at any time and all permissions are revoked instantly.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="privacy-visual">
+        <div class="privacy-diagram">
+          <div class="privacy-node">&#128231; Gmail API</div>
+          <div class="privacy-arrow">&#8595;</div>
+          <div class="privacy-node highlight">&#128187; Your computer (InboxDNA)</div>
+          <div class="privacy-arrow">&#8595;</div>
+          <div class="privacy-node">&#128190; Local database only</div>
+          <div style="margin-top:8px;"></div>
+          <div class="privacy-blocked">&#128683; No data sent to external servers</div>
+        </div>
+        <p class="privacy-note">InboxDNA connects directly to Gmail's API using your own OAuth credentials. All data stays in a local SQLite database on your machine.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="container">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <span>&#129516;</span>
+        <span class="footer-brand-text">InboxDNA</span>
+      </div>
+      <ul class="footer-links">
+        <li>
+          <a href="https://github.com/blaiseratcliffe/inboxdna" aria-label="GitHub repository">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path fill-rule="evenodd" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82a7.42 7.42 0 014 0c1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z" clip-rule="evenodd"/></svg>
+            GitHub
+          </a>
+        </li>
+        <li>
+          <a href="https://github.com/blaiseratcliffe/inboxdna/releases" aria-label="Download releases">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 1a1 1 0 011 1v5.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 111.414-1.414L7 7.586V2a1 1 0 011-1z"/><path d="M2 12a1 1 0 011-1h10a1 1 0 110 2H3a1 1 0 01-1-1z"/></svg>
+            Releases
+          </a>
+        </li>
+        <li>
+          <a href="https://buymeacoffee.com/inboxdna" aria-label="Buy Me a Coffee">
+            <svg viewBox="0 0 16 16" fill="currentColor"><path d="M12 2H3a1 1 0 00-1 1v7a4 4 0 004 4h2a4 4 0 004-4V8h1a2 2 0 002-2V4a2 2 0 00-2-2h-1zm1 4V4h1v2h-1z"/></svg>
+            Buy Me a Coffee
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="footer-bottom">
+      <span>Apache 2.0 License &middot; Made for people who care about their email privacy.</span>
+      <a href="#hero" style="color:#94a3b8;">Back to top &uarr;</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Mobile nav toggle
+function toggleNav() {
+  var links = document.getElementById('navLinks');
+  var btn = document.querySelector('.nav-toggle');
+  var open = links.classList.toggle('open');
+  btn.setAttribute('aria-expanded', open);
+}
+
+// Close mobile nav on link click
+document.querySelectorAll('#navLinks a').forEach(function(a) {
+  a.addEventListener('click', function() {
+    document.getElementById('navLinks').classList.remove('open');
+    document.querySelector('.nav-toggle').setAttribute('aria-expanded', 'false');
+  });
+});
+
+// Copy text helper
+function copyText(text, btn) {
+  navigator.clipboard.writeText(text).then(function() {
+    showTooltip(btn, 'Copied!');
+  });
+}
+
+// Copy code block
+function copyCode(btn) {
+  var block = btn.closest('.code-block');
+  var code = block.querySelector('code');
+  var text = code.textContent;
+  navigator.clipboard.writeText(text).then(function() {
+    btn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3.5 9l3 3 6-7"/></svg> Copied';
+    setTimeout(function() {
+      btn.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="5" y="5" width="9" height="9" rx="1.5"/><path d="M3 11V2.5A1.5 1.5 0 014.5 1H11"/></svg> Copy';
+    }, 2000);
+  });
+}
+
+// Tooltip
+function showTooltip(el, text) {
+  var tip = document.createElement('span');
+  tip.className = 'tooltip';
+  tip.textContent = text;
+  el.style.position = 'relative';
+  el.appendChild(tip);
+  requestAnimationFrame(function() { tip.classList.add('show'); });
+  setTimeout(function() {
+    tip.classList.remove('show');
+    setTimeout(function() { tip.remove(); }, 150);
+  }, 1500);
+}
+
+// Intersection Observer for fade-in animations
+if ('IntersectionObserver' in window && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  var observer = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-in').forEach(function(el) {
+    observer.observe(el);
+  });
+}
+</script>
+</body>
+</html>
