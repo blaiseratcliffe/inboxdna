@@ -2,7 +2,7 @@
 
 A local-first Gmail inbox analyzer and cleanup tool. Your emails never leave your machine.
 
-![Python](https://img.shields.io/badge/python-3.10+-blue) ![License](https://img.shields.io/badge/license-Apache%202.0-blue)
+![Python](https://img.shields.io/badge/python-3.10+-blue) ![License](https://img.shields.io/badge/license-Apache%202.0-blue) ![GitHub Release](https://img.shields.io/github/v/release/blaiseratcliffe/inboxdna) ![PyPI](https://img.shields.io/pypi/v/inboxdna) ![CI](https://img.shields.io/github/actions/workflow/status/blaiseratcliffe/inboxdna/ci.yml?label=CI)
 
 ## Why InboxDNA?
 
