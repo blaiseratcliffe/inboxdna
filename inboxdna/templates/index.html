@@ -1128,7 +1128,13 @@
                 fetchWithRetry(`/api/scan?limit=${limit}&unread=${unreadOnly}&refresh=${refresh}`),
                 fetchWithRetry('/api/labels')
             ]);
-            if (!scanRes.ok) throw new Error('Failed to scan inbox. Try again.');
+            if (!scanRes.ok) {
+                const errData = await scanRes.json().catch(() => ({}));
+                if (errData.auth_failed) {
+                    throw new Error(errData.error || 'Sign-in failed. Click Scan Inbox to try again.');
+                }
+                throw new Error(errData.error || 'Failed to scan inbox. Try again.');
+            }
             if (!labelRes.ok) throw new Error('Failed to load labels.');
 
             const scanText = await scanRes.text();

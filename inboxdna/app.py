@@ -13,7 +13,7 @@ from email.utils import parsedate_to_datetime
 from flask import Flask, render_template, request, jsonify
 from googleapiclient.errors import HttpError
 import ssl
-from inboxdna.auth import get_gmail_service, invalidate_service
+from inboxdna.auth import get_gmail_service, invalidate_service, AuthError
 from inboxdna.classifiers import KNOWN_TRACKER_DOMAINS, SENSITIVE_PATTERNS
 from inboxdna import paths
 import inboxdna.db as db
@@ -166,6 +166,11 @@ def handle_ssl_error(e):
 def handle_timeout(e):
     invalidate_service()
     return jsonify({"error": "Gmail API timed out. Please try again."}), 504
+
+
+@app.errorhandler(AuthError)
+def handle_auth_error(e):
+    return jsonify({"error": str(e), "auth_failed": True}), 401
 
 
 @app.errorhandler(404)
