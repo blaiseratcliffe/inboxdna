@@ -1,0 +1,2727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InboxDNA</title>
+    <link rel="icon" type="image/png" href="/static/logo.png">
+    <style>
+        /* ---- CSS Custom Properties (Dark mode support) ---- */
+        :root {
+            --bg: #f5f5f5;
+            --surface: #ffffff;
+            --text: #333333;
+            --text-secondary: #5f6368;
+            --border: #e0e0e0;
+            --hover: #f1f3f4;
+            --surface-alt: #f8f9fa;
+            --input-bg: #ffffff;
+            --input-border: #dadce0;
+            --badge-bg: #f1f3f4;
+            --selected-bg: #e8f0fe;
+            --selected-border: #1a73e8;
+            --message-row-border: #f0f0f0;
+            --spam-summary-bg: #fff8e1;
+            --spam-summary-border: #ffe082;
+            --impact-bg-start: #e8f5e9;
+            --impact-bg-end: #c8e6c9;
+            --impact-text: #1b5e20;
+            --impact-border: #a5d6a7;
+            --btn-keep-bg: #e8f5e9; --btn-keep-text: #2e7d32;
+            --btn-archive-bg: #e8f0fe; --btn-archive-text: #1a73e8;
+            --btn-delete-bg: #fce8e6; --btn-delete-text: #d93025;
+            --btn-block-bg: #fef7e0; --btn-block-text: #e37400;
+            --btn-unsub-bg: #f28b82; --btn-unsub-text: #611a15;
+            --triage-label: #888;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1a1a2e;
+                --surface: #16213e;
+                --text: #e0e0e0;
+                --text-secondary: #b0b4b8;
+                --border: #2a2a4a;
+                --hover: #1f2b4d;
+                --surface-alt: #1c2541;
+                --input-bg: #1c2541;
+                --input-border: #3a3a5a;
+                --badge-bg: #1c2541;
+                --selected-bg: #1a3a6e;
+                --selected-border: #4a90e8;
+                --message-row-border: #2a2a4a;
+                --spam-summary-bg: #2a2518;
+                --spam-summary-border: #5a4a20;
+                --impact-bg-start: #1a2e1a;
+                --impact-bg-end: #1a2e1a;
+                --impact-text: #81c784;
+                --impact-border: #2e5a2e;
+                --btn-keep-bg: #1a3a1a; --btn-keep-text: #81c784;
+                --btn-archive-bg: #1a2e4a; --btn-archive-text: #64b5f6;
+                --btn-delete-bg: #3a1a1a; --btn-delete-text: #ef9a9a;
+                --btn-block-bg: #3a2a1a; --btn-block-text: #ffcc80;
+                --btn-unsub-bg: #4a1a1a; --btn-unsub-text: #ef9a9a;
+                --triage-label: #a0a4a8;
+            }
+        }
+
+        /* ---- Manual theme overrides ---- */
+        html[data-theme="dark"] {
+            color-scheme: dark;
+            --bg: #1a1a2e;
+            --surface: #16213e;
+            --text: #e0e0e0;
+            --text-secondary: #b0b4b8;
+            --border: #2a2a4a;
+            --hover: #1f2b4d;
+            --surface-alt: #1c2541;
+            --input-bg: #1c2541;
+            --input-border: #3a3a5a;
+            --badge-bg: #1c2541;
+            --selected-bg: #1a3a6e;
+            --selected-border: #4a90e8;
+            --message-row-border: #2a2a4a;
+            --spam-summary-bg: #2a2518;
+            --spam-summary-border: #5a4a20;
+            --impact-bg-start: #1a2e1a;
+            --impact-bg-end: #1a2e1a;
+            --impact-text: #81c784;
+            --impact-border: #2e5a2e;
+            --btn-keep-bg: #1a3a1a; --btn-keep-text: #81c784;
+            --btn-archive-bg: #1a2e4a; --btn-archive-text: #64b5f6;
+            --btn-delete-bg: #3a1a1a; --btn-delete-text: #ef9a9a;
+            --btn-block-bg: #3a2a1a; --btn-block-text: #ffcc80;
+            --btn-unsub-bg: #4a1a1a; --btn-unsub-text: #ef9a9a;
+            --triage-label: #a0a4a8;
+        }
+        html[data-theme="light"] {
+            color-scheme: light;
+            --bg: #f5f5f5;
+            --surface: #ffffff;
+            --text: #333333;
+            --text-secondary: #5f6368;
+            --border: #e0e0e0;
+            --hover: #f1f3f4;
+            --surface-alt: #f8f9fa;
+            --input-bg: #ffffff;
+            --input-border: #dadce0;
+            --badge-bg: #f1f3f4;
+            --selected-bg: #e8f0fe;
+            --selected-border: #1a73e8;
+            --message-row-border: #f0f0f0;
+            --spam-summary-bg: #fff8e1;
+            --spam-summary-border: #ffe082;
+            --impact-bg-start: #e8f5e9;
+            --impact-bg-end: #c8e6c9;
+            --impact-text: #1b5e20;
+            --impact-border: #a5d6a7;
+            --btn-keep-bg: #e8f5e9; --btn-keep-text: #2e7d32;
+            --btn-archive-bg: #e8f0fe; --btn-archive-text: #1a73e8;
+            --btn-delete-bg: #fce8e6; --btn-delete-text: #d93025;
+            --btn-block-bg: #fef7e0; --btn-block-text: #e37400;
+            --btn-unsub-bg: #f28b82; --btn-unsub-text: #611a15;
+            --triage-label: #888;
+        }
+
+        /* ---- Theme toggle button ---- */
+        #themeToggle {
+            background: rgba(255,255,255,0.2); border: none; color: white;
+            padding: 5px 10px; border-radius: 6px; cursor: pointer; font-size: 16px;
+            transition: background 0.15s; line-height: 1;
+        }
+        #themeToggle:hover { background: rgba(255,255,255,0.35); }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        *:focus-visible { outline: 2px solid #1a73e8; outline-offset: 2px; }
+
+        /* Visually hidden utility for screen readers */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
+        }
+
+        /* Skip link */
+        .skip-link {
+            position: absolute;
+            left: -9999px;
+            top: 4px;
+            z-index: 1001;
+            padding: 8px 16px;
+            background: #1a73e8;
+            color: white;
+            border-radius: 4px;
+            font-size: 14px;
+            text-decoration: none;
+        }
+        .skip-link:focus {
+            left: 8px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        /* ---- Header ---- */
+        header {
+            background: #1a73e8;
+            color: white;
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .header-brand { display: flex; align-items: center; gap: 10px; }
+        .header-logo { height: 32px; width: 32px; border-radius: 6px; }
+        header h1 { font-size: 20px; font-weight: 500; }
+        .header-right { display: flex; gap: 12px; align-items: center; }
+        .header-stats { display: flex; gap: 8px; font-size: 13px; }
+        .header-stats span {
+            background: rgba(255,255,255,0.3);
+            padding: 5px 12px;
+            border-radius: 16px;
+            font-weight: 500;
+        }
+        .view-toggle { display: flex; gap: 0; }
+        .view-toggle button {
+            padding: 6px 14px; border: 1px solid rgba(255,255,255,0.4); background: transparent;
+            color: white; cursor: pointer; font-size: 13px; transition: all 0.15s;
+        }
+        .view-toggle button:first-child { border-radius: 6px 0 0 6px; }
+        .view-toggle button:last-child { border-radius: 0 6px 6px 0; }
+        .view-toggle button.active { background: rgba(255,255,255,0.25); }
+        .bmc-btn {
+            background: #ffdd00; color: #000; padding: 6px 14px; border-radius: 6px;
+            font-size: 13px; font-weight: 600; text-decoration: none; white-space: nowrap;
+            transition: background 0.15s;
+        }
+        .bmc-btn:hover { background: #e5c700; }
+
+        /* ---- Impact banner (Cleanfox CO2) ---- */
+        .impact-banner {
+            background: linear-gradient(135deg, var(--impact-bg-start), var(--impact-bg-end));
+            padding: 10px 24px;
+            display: none;
+            align-items: center;
+            gap: 16px;
+            font-size: 13px;
+            color: var(--impact-text);
+            border-bottom: 1px solid var(--impact-border);
+        }
+        .impact-banner.visible { display: flex; }
+        .impact-banner .impact-stat { font-weight: 600; }
+
+        /* ---- Toolbar ---- */
+        .toolbar {
+            background: var(--surface);
+            padding: 10px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            position: sticky;
+            top: 56px;
+            z-index: 99;
+        }
+        .toolbar button, .toolbar select {
+            padding: 7px 14px;
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            background: var(--surface);
+            color: var(--text);
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s;
+        }
+        .toolbar button:hover { background: var(--hover); }
+        .toolbar button.primary { background: #1a73e8; color: white; border-color: #1a73e8; }
+        .toolbar button.primary:hover { background: #1557b0; }
+        .toolbar button.danger { color: #d93025; border-color: #d93025; }
+        .toolbar button.danger:hover { background: #d93025; color: white; }
+        .toolbar button.warning { color: #e37400; border-color: #e37400; }
+        .toolbar button.warning:hover { background: #fef7e0; }
+        .toolbar button:disabled { opacity: 0.4; cursor: not-allowed; }
+        .toolbar .spacer { flex: 1; }
+        .toolbar input[type="text"] {
+            padding: 7px 12px;
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            font-size: 13px;
+            width: 200px;
+            background: var(--input-bg);
+            color: var(--text);
+        }
+        .toolbar label {
+            font-size: 13px; cursor: pointer;
+            display: flex; align-items: center; gap: 4px;
+        }
+        .scan-controls { display: flex; gap: 6px; align-items: center; }
+        .scan-options-details { font-size: 13px; }
+        .scan-options-details summary {
+            cursor: pointer; color: var(--text-secondary); font-size: 12px;
+            padding: 4px 0; user-select: none; list-style: none;
+        }
+        .scan-options-details summary::-webkit-details-marker { display: none; }
+        .scan-options-details summary::before { content: '\25B6 '; font-size: 10px; }
+        .scan-options-details[open] summary::before { content: '\25BC '; }
+        .scan-options-details .scan-options-inner { display: flex; gap: 6px; align-items: center; padding-top: 6px; }
+        .action-divider { width: 1px; height: 24px; background: var(--input-border); margin: 0 4px; }
+
+        /* ---- Filter chips ---- */
+        .filter-chips { display: flex; gap: 5px; flex-wrap: wrap; }
+        .filter-chip {
+            padding: 5px 10px; border-radius: 16px; font-size: 12px;
+            border: 1px solid var(--input-border); cursor: pointer; background: var(--surface); color: var(--text); transition: all 0.15s;
+        }
+        .filter-chip:hover { background: var(--hover); }
+        .filter-chip.active { background: #1a73e8; color: white; border-color: #1a73e8; }
+
+        /* ---- Content ---- */
+        #content { padding: 16px 24px; max-width: 1200px; margin: 0 auto; }
+
+        .loading { text-align: center; padding: 80px 0; color: var(--text-secondary); }
+        .loading .spinner {
+            width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: #1a73e8;
+            border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 16px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Empty state */
+        .empty-state { text-align: center; padding: 80px 24px; max-width: 420px; margin: 0 auto; }
+        .empty-state .empty-icon { font-size: 48px; margin-bottom: 16px; opacity: 0.4; }
+        .empty-state h2 { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 8px; }
+        .empty-state p { font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; }
+        .empty-state .steps { text-align: left; font-size: 13px; color: var(--text-secondary); line-height: 2; }
+        .empty-state .steps span {
+            display: inline-block; width: 20px; height: 20px; background: #e8f0fe; color: #1a73e8;
+            border-radius: 50%; text-align: center; line-height: 20px; font-size: 11px; font-weight: 600; margin-right: 8px;
+        }
+
+        /* ---- Analytics summary bar ---- */
+        .analytics-summary {
+            display: flex; gap: 24px; padding: 14px 20px;
+            background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+            margin-bottom: 12px; align-items: baseline; flex-wrap: wrap;
+        }
+        .analytics-summary .stat-group { display: flex; align-items: baseline; gap: 6px; }
+        .analytics-summary .stat-value { font-size: 20px; font-weight: 700; color: #1a73e8; }
+        .analytics-summary .stat-label { font-size: 13px; color: var(--text-secondary); }
+        .analytics-summary .cleanup-value { color: #e37400; }
+
+        /* ---- Sender cards ---- */
+        .sender-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+            margin-bottom: 10px; transition: box-shadow 0.15s, opacity 0.3s ease, transform 0.3s ease, max-height 0.3s ease 0.1s, margin 0.3s ease 0.1s, padding 0.3s ease 0.1s, border-width 0.3s ease 0.1s;
+            max-height: 500px; overflow: hidden;
+        }
+        .sender-card.removing {
+            opacity: 0; transform: translateX(60px) scale(0.97);
+            max-height: 0; margin-bottom: 0; border-width: 0;
+        }
+        .sender-card:hover { box-shadow: 0 1px 6px rgba(0,0,0,0.1); }
+        .sender-card.selected { border-color: var(--selected-border); background: var(--selected-bg); }
+        .sender-card.focused { box-shadow: 0 0 0 2px #1a73e8; }
+
+        .sender-header {
+            padding: 14px 16px; display: flex; align-items: center;
+            gap: 12px; cursor: pointer; user-select: none;
+        }
+        .sender-header input[type="checkbox"] {
+            width: 18px; height: 18px; cursor: pointer; accent-color: #1a73e8;
+        }
+
+        /* Sender avatar */
+        .sender-avatar {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 600; font-size: 15px; color: white; flex-shrink: 0;
+        }
+
+        .sender-info { flex: 1; min-width: 0; }
+        .sender-name { font-weight: 500; font-size: 14px; line-height: 1.4; display: flex; align-items: center; gap: 6px; }
+        .sender-email { font-size: 12px; color: var(--text-secondary); margin-top: 3px; }
+
+        .sender-meta { display: flex; gap: 6px; align-items: center; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
+
+        .badge {
+            padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 500; white-space: nowrap;
+        }
+        .badge.count { background: #e8f0fe; color: #1a73e8; }
+        .badge.unread { background: #e8f0fe; color: #1a73e8; font-weight: 600; }
+        .badge.category { background: var(--badge-bg); color: var(--text-secondary); }
+        .badge.category-promotions { background: #e6f4ea; color: #137333; }
+        .badge.category-updates { background: #e8f0fe; color: #1a73e8; }
+        .badge.category-social { background: #fef7e0; color: #9a5400; }
+        .badge.category-forums { background: #f3e8fd; color: #7627bb; }
+        .badge.size { background: var(--badge-bg); color: var(--text-secondary); }
+        .badge.engagement-low { background: #fce8e6; color: #d93025; }
+        .badge-decision { padding: 2px 7px; border-radius: 10px; font-size: 10px; font-weight: 600; }
+        .badge-decision.blocked { background: #fce8e6; color: #d93025; }
+        .badge-decision.unsubscribed { background: #e6f4ea; color: #137333; }
+
+        .spam-meter { width: 48px; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; }
+        .spam-meter .fill { height: 100%; border-radius: 3px; }
+        .spam-meter .fill.low { background: #34a853; }
+        .spam-meter .fill.medium { background: #fbbc04; }
+        .spam-meter .fill.high { background: #ea4335; }
+
+        .spam-badge { font-size: 10px; padding: 2px 7px; border-radius: 10px; font-weight: 600; }
+        .spam-badge.high { background: #fce8e6; color: #d93025; }
+        .spam-badge.medium { background: #fef7e0; color: #e37400; }
+
+        .unsub-icon { font-size: 13px; color: var(--text-secondary); cursor: help; }
+
+        /* DNA info icon */
+        .dna-info-btn {
+            background: none; border: none; cursor: pointer; font-size: 13px;
+            color: var(--text-secondary); opacity: 0; transition: opacity 0.15s;
+            padding: 0 2px; vertical-align: middle; line-height: 1;
+        }
+        .sender-card:hover .dna-info-btn { opacity: 0.7; }
+        .dna-info-btn:hover { opacity: 1 !important; }
+
+        /* Quick actions on hover */
+        .quick-actions { display: none; gap: 4px; }
+        .sender-card:hover .quick-actions,
+        .sender-card:focus-within .quick-actions,
+        .sender-card.focused .quick-actions { display: flex; }
+        .quick-actions button {
+            padding: 4px 10px; border: 1px solid var(--input-border); border-radius: 4px;
+            background: var(--surface); color: var(--text); cursor: pointer; font-size: 11px; transition: all 0.1s;
+        }
+        .quick-actions button:hover { background: var(--hover); }
+        .quick-actions button.q-delete:hover { background: #fce8e6; color: #d93025; }
+        .quick-actions button.q-danger:hover { background: #fce8e6; color: #d93025; }
+        .quick-actions button.q-block:hover { background: #fef7e0; color: #e37400; }
+
+        .expand-btn {
+            background: none; border: none; cursor: pointer;
+            font-size: 16px; color: var(--text-secondary); padding: 4px; transition: transform 0.2s;
+        }
+        .expand-btn.open { transform: rotate(90deg); }
+
+        .sender-messages {
+            display: none; border-top: 1px solid var(--border); max-height: 400px; overflow-y: auto;
+        }
+        .sender-messages.open { display: block; }
+
+        .message-row {
+            padding: 6px 16px 6px 46px; display: flex; gap: 10px;
+            align-items: center; border-bottom: 1px solid var(--message-row-border); font-size: 13px;
+            color: var(--text);
+        }
+        .message-row:last-child { border-bottom: none; }
+        .message-row.unread .msg-subject { font-weight: 600; }
+        .msg-subject { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .msg-snippet { color: var(--text-secondary); font-weight: 400; }
+        .msg-date { color: var(--text-secondary); font-size: 12px; flex-shrink: 0; }
+        .msg-size { color: var(--text-secondary); font-size: 11px; flex-shrink: 0; }
+
+        .select-all-bar {
+            padding: 10px 16px; display: flex; align-items: center; gap: 12px; margin-bottom: 6px;
+        }
+        .select-all-bar label {
+            font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 6px;
+        }
+
+        /* ---- Spam summary ---- */
+        .spam-summary {
+            background: var(--spam-summary-bg); border: 1px solid var(--spam-summary-border); border-radius: 8px;
+            padding: 14px 20px; margin-bottom: 12px; display: none;
+        }
+        .spam-summary.visible { display: block; }
+        .spam-summary h3 { font-size: 14px; margin-bottom: 6px; color: #e37400; }
+        .spam-summary p { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; }
+        .spam-summary .actions { display: flex; gap: 8px; }
+        .spam-summary button {
+            padding: 7px 14px; border: 1px solid var(--input-border);
+            border-radius: 6px; cursor: pointer; font-size: 13px; background: var(--surface); color: var(--text);
+        }
+        .spam-summary button.warning { background: #e37400; color: white; border-color: #e37400; }
+
+        /* ---- Triage view ---- */
+        .triage-view { display: none; }
+        .triage-view.active { display: block; }
+
+        .triage-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+            max-width: 500px; margin: 24px auto; padding: 24px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); text-align: center;
+            transition: transform 0.3s, opacity 0.3s; position: relative;
+        }
+        .triage-card.swipe-left { transform: translateX(-120%) rotate(-10deg); opacity: 0; }
+        .triage-card.swipe-right { transform: translateX(120%) rotate(10deg); opacity: 0; }
+        .triage-card.swipe-up { transform: translateY(-120%); opacity: 0; }
+
+        .triage-sender-name { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+        .triage-sender-email { font-size: 14px; color: var(--text-secondary); margin-bottom: 16px; }
+
+        .triage-stats { display: flex; justify-content: center; gap: 24px; margin-bottom: 20px; }
+        .triage-stat { text-align: center; }
+        .triage-stat .num { font-size: 24px; font-weight: 700; color: #1a73e8; }
+        .triage-stat .num.secondary { font-size: 18px; color: var(--text-secondary); }
+        .triage-stat .label { font-size: 12px; color: var(--triage-label); }
+
+        .triage-subjects {
+            text-align: left; background: var(--surface-alt); border-radius: 8px;
+            padding: 12px; margin-bottom: 20px; max-height: 150px; overflow-y: auto;
+        }
+        .triage-subjects div {
+            padding: 4px 0; font-size: 13px; color: var(--text-secondary); border-bottom: 1px solid var(--border);
+        }
+        .triage-subjects div:last-child { border-bottom: none; }
+
+        .triage-actions { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .triage-actions button {
+            padding: 12px 20px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 500; cursor: pointer;
+            transition: transform 0.1s, box-shadow 0.1s;
+        }
+        .triage-actions button:hover { transform: scale(1.05); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .triage-actions .btn-keep { background: var(--btn-keep-bg); color: var(--btn-keep-text); }
+        .triage-actions .btn-archive { background: var(--btn-archive-bg); color: var(--btn-archive-text); }
+        .triage-actions .btn-delete { background: var(--btn-delete-bg); color: var(--btn-delete-text); }
+        .triage-actions .btn-block { background: var(--btn-block-bg); color: var(--btn-block-text); }
+        .triage-actions .btn-unsub { background: var(--btn-unsub-bg); color: var(--btn-unsub-text); font-weight: 600; }
+
+        .triage-progress { text-align: center; margin-bottom: 16px; font-size: 13px; color: var(--triage-label); }
+        .triage-progress-bar {
+            height: 4px; background: var(--border); border-radius: 2px;
+            max-width: 500px; margin: 0 auto 8px;
+        }
+        .triage-progress-bar .fill { height: 100%; background: #1a73e8; border-radius: 2px; transition: width 0.3s; }
+
+        .triage-hint { font-size: 12px; color: var(--triage-label); margin-top: 12px; }
+
+        /* ---- Toast notifications (replaces status bar) ---- */
+        .toast-container {
+            position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+            z-index: 200; display: flex; flex-direction: column-reverse; gap: 8px;
+            pointer-events: none; max-width: 500px; width: calc(100% - 32px);
+        }
+        .toast {
+            background: #323232; color: white; padding: 12px 20px;
+            border-radius: 8px; font-size: 14px; display: flex;
+            align-items: center; justify-content: space-between; gap: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3); pointer-events: auto;
+            transform: translateY(100%); opacity: 0;
+            animation: toastIn 0.3s ease forwards; position: relative; overflow: hidden;
+        }
+        .toast.dismissing {
+            animation: toastOut 0.3s ease forwards;
+        }
+        .toast .toast-text { flex: 1; }
+        .toast button {
+            background: none; border: none; color: #8ab4f8;
+            cursor: pointer; font-size: 14px; text-decoration: underline;
+            white-space: nowrap; padding: 0;
+        }
+        .toast .toast-timer {
+            position: absolute; bottom: 0; left: 0; height: 3px;
+            background: #8ab4f8; border-radius: 0 0 0 8px;
+            width: 100%; transform-origin: left;
+        }
+        @keyframes toastIn {
+            from { transform: translateY(100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        @keyframes toastOut {
+            from { transform: translateY(0); opacity: 1; }
+            to { transform: translateY(100%); opacity: 0; }
+        }
+
+        /* ---- Modals ---- */
+        .modal {
+            background: var(--surface); border-radius: 12px; padding: 24px;
+            min-width: 0; width: calc(100% - 48px); max-width: 480px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2); color: var(--text);
+        }
+        .modal h3 { margin-bottom: 16px; }
+        .modal input[type="text"] {
+            width: 100%; padding: 10px 12px; border: 1px solid var(--input-border);
+            border-radius: 6px; font-size: 14px; margin-bottom: 12px;
+            background: var(--input-bg); color: var(--text);
+        }
+        .modal .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+        .modal button {
+            padding: 8px 20px; border: 1px solid var(--input-border); border-radius: 6px;
+            cursor: pointer; font-size: 14px; background: var(--surface); color: var(--text);
+        }
+        .modal button.primary { background: #1a73e8; color: white; border-color: #1a73e8; }
+        .modal-label-item {
+            padding: 8px 12px; cursor: pointer; border-radius: 4px; font-size: 14px;
+            border: none; background: none; color: var(--text); width: 100%; text-align: left; display: block;
+        }
+        .modal-label-item:hover { background: var(--hover); }
+
+        /* ---- Progress bar ---- */
+        .progress-bar {
+            height: 3px; background: var(--border);
+            position: fixed; top: 56px; left: 0; right: 0; z-index: 99;
+        }
+        .progress-bar .fill { height: 100%; background: #1a73e8; width: 0%; }
+
+        /* ---- Confetti ---- */
+        @keyframes confettiFall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+        .confetti-container {
+            position: fixed; inset: 0; pointer-events: none; z-index: 999; overflow: hidden;
+        }
+        .confetti-piece {
+            position: absolute; width: 10px; height: 10px; top: -10px;
+            animation: confettiFall linear forwards;
+        }
+
+        /* ---- Reduced motion ---- */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.01ms !important;
+            }
+            .triage-card.swipe-left,
+            .triage-card.swipe-right,
+            .triage-card.swipe-up {
+                transform: none !important;
+                opacity: 0 !important;
+            }
+            .confetti-container { display: none !important; }
+        }
+
+        /* ---- Mobile responsive ---- */
+        @media (max-width: 768px) {
+            header { flex-wrap: wrap; padding: 12px 16px; gap: 8px; }
+            .header-stats { display: none; }
+            .toolbar { padding: 8px 12px; }
+            #content { padding: 8px 12px; }
+            .sender-meta .badge.category,
+            .sender-meta .badge.size { display: none; }
+            .sender-header { padding: 10px 12px; }
+            .quick-actions { display: flex !important; }
+            .triage-actions { flex-wrap: wrap; }
+            .triage-actions button { flex: 1 1 45%; min-width: 0; padding: 10px 12px; font-size: 13px; }
+            .analytics-summary { gap: 16px; padding: 12px 16px; }
+            .message-row { padding-left: 16px; }
+        }
+
+        /* ---- Insights view ---- */
+        .insights-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; padding: 16px 0; }
+        @media (max-width: 768px) { .insights-grid { grid-template-columns: 1fr; } }
+        .insight-card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+            padding: 20px; overflow: hidden;
+        }
+        .insight-card h3 { margin: 0 0 12px; font-size: 15px; font-weight: 600; color: var(--text); }
+        .insight-card .subtitle { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; }
+        .insight-card.full-width { grid-column: 1 / -1; }
+        .chart-line { fill: none; stroke: #1a73e8; stroke-width: 2; }
+        .chart-area { fill: rgba(26, 115, 232, 0.1); }
+        .chart-dot { fill: #1a73e8; r: 3; }
+        .chart-label { font-size: 10px; fill: var(--text-secondary); }
+        .change-badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 600; }
+        .change-badge.up { background: #fce8e6; color: #d93025; }
+        .change-badge.down { background: #e6f4ea; color: #137333; }
+        .change-badge.neutral { background: var(--badge-bg); color: var(--text-secondary); }
+        .new-sender-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+        .new-sender-row:last-child { border-bottom: none; }
+        .ghost-rule-card {
+            display: flex; align-items: center; gap: 12px; padding: 12px;
+            background: var(--surface-alt); border-radius: 8px; margin-bottom: 8px;
+        }
+        .ghost-rule-card .ghost-icon { font-size: 24px; }
+        .ghost-rule-card .ghost-info { flex: 1; }
+        .ghost-rule-card .ghost-info p { margin: 0; font-size: 13px; color: var(--text); }
+        .ghost-rule-card .ghost-info small { color: var(--text-secondary); font-size: 11px; }
+        .ghost-rule-card button { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12px; cursor: pointer; }
+        .ghost-rule-card button.accept { background: #1a73e8; color: white; border-color: #1a73e8; }
+        .ghost-rule-card button.accept:hover { background: #1557b0; }
+
+        /* ---- DNA Card modal ---- */
+        .dna-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 999;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.15s ease;
+        }
+        .dna-overlay.visible { opacity: 1; pointer-events: auto; }
+        .dna-card {
+            background: var(--surface); border-radius: 16px; padding: 24px;
+            max-width: 520px; width: calc(100% - 32px); max-height: 85vh; overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transform: scale(0.95); transition: transform 0.2s ease;
+        }
+        .dna-overlay.visible .dna-card { transform: scale(1); }
+        .dna-header { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+        .dna-respect { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .dna-stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+        .dna-stat { text-align: center; padding: 8px; background: var(--surface-alt); border-radius: 8px; }
+        .dna-stat .val { font-size: 18px; font-weight: 700; color: var(--text); }
+        .dna-stat .lbl { font-size: 10px; color: var(--text-secondary); margin-top: 2px; }
+        .dna-section { margin-bottom: 14px; }
+        .dna-section h4 { font-size: 12px; font-weight: 600; color: var(--text-secondary); margin: 0 0 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .dna-bar-row { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; }
+        .dna-bar-label { font-size: 10px; color: var(--text-secondary); width: 26px; text-align: right; }
+        .dna-bar { flex: 1; height: 12px; background: var(--border); border-radius: 3px; overflow: hidden; }
+        .dna-bar .fill { height: 100%; background: #1a73e8; border-radius: 3px; }
+        .dna-dark-pattern { display: inline-block; padding: 2px 8px; background: #fce8e6; color: #d93025; border-radius: 10px; font-size: 11px; margin: 2px; }
+        .dna-actions { display: flex; gap: 6px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border); }
+        .dna-actions button { flex: 1; padding: 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--surface); color: var(--text); font-size: 12px; cursor: pointer; }
+        .dna-actions button:hover { background: var(--hover); }
+        .dna-actions button.danger { border-color: #d93025; color: #d93025; }
+
+        /* ---- Confirm modal ---- */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1000;
+            display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.15s ease;
+        }
+        .modal-overlay.visible { opacity: 1; pointer-events: auto; }
+        .modal-box {
+            background: var(--surface); border-radius: 16px; padding: 28px 28px 20px;
+            max-width: 400px; width: calc(100% - 32px); box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            transform: scale(0.92) translateY(10px); transition: transform 0.2s ease;
+        }
+        .modal-overlay.visible .modal-box { transform: scale(1) translateY(0); }
+        .modal-icon { font-size: 32px; margin-bottom: 12px; }
+        .modal-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+        .modal-message { font-size: 14px; color: var(--text-secondary); line-height: 1.5; margin-bottom: 20px; }
+        .modal-actions { display: flex; gap: 8px; justify-content: flex-end; }
+        .modal-actions button {
+            padding: 9px 20px; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--surface); color: var(--text); font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: background 0.1s, border-color 0.1s;
+        }
+        .modal-actions button:hover { background: var(--hover); }
+        .modal-actions button.modal-confirm {
+            background: #d93025; color: white; border-color: #d93025;
+        }
+        .modal-actions button.modal-confirm:hover { background: #c5221f; }
+        .modal-actions button.modal-confirm.warn {
+            background: #e37400; border-color: #e37400;
+        }
+        .modal-actions button.modal-confirm.warn:hover { background: #c96500; }
+        .modal-remember {
+            display: flex; align-items: center; gap: 6px; margin-bottom: 16px;
+            font-size: 12px; color: var(--text-secondary); cursor: pointer;
+        }
+        .modal-remember input { margin: 0; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <a href="#content" class="skip-link">Skip to main content</a>
+    <header role="banner">
+        <div class="header-brand"><img src="/static/logo.png" alt="InboxDNA" class="header-logo"><h1>InboxDNA</h1></div>
+        <div class="header-right">
+            <nav class="view-toggle" aria-label="View navigation">
+                <button class="active" id="btnListView" aria-pressed="true" onclick="setView('list')">List</button>
+                <button id="btnTriageView" aria-pressed="false" onclick="setView('triage')">Triage</button>
+                <button id="btnInsightsView" aria-pressed="false" onclick="setView('insights')">Insights</button>
+            </nav>
+            <div class="header-stats" role="status" aria-label="Inbox statistics">
+                <span id="stat-total" aria-label="Total messages">--</span>
+                <span id="stat-unread" aria-label="Unread messages">--</span>
+                <span id="stat-senders" aria-label="Number of senders">--</span>
+                <span id="stat-size" aria-label="Total size">--</span>
+            </div>
+            <a href="https://buymeacoffee.com/inboxdna" target="_blank" rel="noopener" class="bmc-btn" title="Support InboxDNA">&#9749; Buy me a coffee</a>
+            <button id="themeToggle" title="Toggle theme" onclick="cycleTheme()">&#128260;</button>
+        </div>
+    </header>
+
+    <div class="impact-banner" id="impactBanner">
+        <span aria-hidden="true">&#127793;</span>
+        <span>You've cleaned <b class="impact-stat" id="impactCount">0</b> emails, saving ~<b class="impact-stat" id="impactCO2">0g</b> CO2/year
+        (<b class="impact-stat" id="impactStorage">0 KB</b> freed)</span>
+    </div>
+
+    <div class="progress-bar" id="progressBar"><div class="fill" id="progressFill"></div></div>
+
+    <nav class="toolbar" aria-label="Toolbar">
+        <div class="scan-controls">
+            <button class="primary" id="btnScan" onclick="scanInbox()">Scan Inbox</button>
+            <details class="scan-options-details">
+                <summary>Scan options</summary>
+                <div class="scan-options-inner">
+                    <select id="scanLimit" aria-label="Number of messages to scan">
+                        <option value="200">200</option>
+                        <option value="500" selected>500</option>
+                        <option value="2000">2000</option>
+                        <option value="0">All</option>
+                    </select>
+                    <label><input type="checkbox" id="unreadOnly" checked> Unread only</label>
+                    <label title="Bypass cache and re-fetch all metadata from Gmail"><input type="checkbox" id="forceRefresh"> Force refresh</label>
+                </div>
+            </details>
+        </div>
+        <div class="spacer"></div>
+        <input type="text" id="searchBox" placeholder="Filter senders..." aria-label="Filter senders" role="searchbox" oninput="debouncedFilter()">
+        <div style="display:flex; gap:4px; align-items:center;">
+            <label for="sortBy" style="font-size:12px; color:var(--text-secondary);">Sort:</label>
+            <select id="sortBy" onchange="applySortAndFilter()">
+                <option value="count">Most emails</option>
+                <option value="spam">Spam score</option>
+                <option value="unread">Most unread</option>
+                <option value="engagement">Low engagement</option>
+                <option value="size">Largest</option>
+                <option value="oldest">Oldest first</option>
+                <option value="name">Name A-Z</option>
+            </select>
+        </div>
+        <div class="filter-chips" id="categoryFilters"></div>
+    </nav>
+
+    <div class="toolbar" id="actionBar" style="display:none; top: 104px;">
+        <span id="selectedCount" style="font-size:13px; font-weight:500;"></span>
+        <button onclick="archiveSelected()">Archive</button>
+        <button onclick="markReadSelected()">Mark Read</button>
+        <button class="warning" onclick="blockSelected()">Block</button>
+        <button onclick="applyLabelSelected()">Label</button>
+        <button onclick="createFilterSelected()">Filter</button>
+        <div class="action-divider"></div>
+        <button class="danger" onclick="deleteSelected()">Delete</button>
+        <button class="danger" onclick="unsubDeleteSelected()">Unsub + Delete</button>
+        <div class="spacer"></div>
+        <button onclick="clearSelection()">Cancel</button>
+    </div>
+
+    <main id="content">
+        <div class="empty-state" id="placeholder">
+            <div class="empty-icon" aria-hidden="true">&#128233;</div>
+            <h2>Gmail Inbox Organizer</h2>
+            <p>Scan your inbox to find bulk senders, marketing emails, and cleanup opportunities.</p>
+            <div class="steps">
+                <div><span>1</span> Click Scan Inbox to analyze your messages</div>
+                <div><span>2</span> Review senders sorted by volume or spam score</div>
+                <div><span>3</span> Archive, delete, or unsubscribe in bulk</div>
+            </div>
+        </div>
+    </main>
+
+    <div class="triage-view" id="triageView">
+        <h2 class="visually-hidden">Triage Mode</h2>
+        <div class="triage-progress">
+            <div class="triage-progress-bar"><div class="fill" id="triageProgressFill"></div></div>
+            <span id="triageProgressText">0 / 0 senders reviewed</span>
+        </div>
+        <div id="triageCardContainer"></div>
+    </div>
+
+    <div id="insightsView" style="display:none; max-width:900px; margin:0 auto; padding:0 16px;">
+        <h2 class="visually-hidden">Inbox Insights</h2>
+        <div class="insights-grid" id="insightsGrid">
+            <div class="loading"><div class="spinner"></div><p>Loading insights...</p></div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="modal-overlay" id="confirmModal"></div>
+    <div class="dna-overlay" id="dnaOverlay" role="dialog" aria-modal="true" aria-label="Sender profile" onclick="if(event.target===this)closeDNA()"></div>
+
+    <div class="modal-overlay" id="labelModal" role="dialog" aria-modal="true">
+        <div class="modal">
+            <h3>Apply Label</h3>
+            <input type="text" id="labelSearch" placeholder="Search or create label..." oninput="filterLabels()">
+            <div id="labelList" style="max-height:200px; overflow-y:auto; margin-bottom:12px;"></div>
+            <div class="modal-actions">
+                <button onclick="closeLabelModal()">Cancel</button>
+                <button class="primary" onclick="createAndApplyLabel()">Create New</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="filterModal" role="dialog" aria-modal="true">
+        <div class="modal">
+            <h3>Create Filter</h3>
+            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">
+                For emails from: <b id="filterSenderDisplay"></b>
+            </p>
+            <label style="display:flex; gap:8px; align-items:center; margin-bottom:8px; font-size:14px; cursor:pointer;">
+                <input type="checkbox" id="filterArchive" checked> Skip Inbox (Archive)
+            </label>
+            <label style="display:flex; gap:8px; align-items:center; margin-bottom:8px; font-size:14px; cursor:pointer;">
+                <input type="checkbox" id="filterMarkRead"> Mark as Read
+            </label>
+            <label style="display:flex; gap:8px; align-items:center; margin-bottom:16px; font-size:14px; cursor:pointer;">
+                <input type="checkbox" id="filterDelete"> Delete
+            </label>
+            <div class="modal-actions">
+                <button onclick="closeFilterModal()">Cancel</button>
+                <button class="primary" onclick="confirmCreateFilter()">Create Filter</button>
+            </div>
+        </div>
+    </div>
+
+<script>
+    let senderData = [];
+    let allLabels = [];
+    let selectedSenders = new Set();
+    let currentView = 'list';
+    let triageQueue = [];  // Pre-computed triage order
+    let triageIndex = 0;
+    let hasUndo = false;
+    let focusedCardIndex = -1;
+    let _dnaLastFocused = null;
+    let _modalLastFocused = null;
+
+    // ---- Theme toggle (auto / light / dark) ----
+    (function initTheme() {
+        const saved = localStorage.getItem('inboxdna-theme') || 'auto';
+        applyTheme(saved);
+    })();
+
+    function applyTheme(theme) {
+        const html = document.documentElement;
+        if (theme === 'auto') {
+            html.removeAttribute('data-theme');
+        } else {
+            html.setAttribute('data-theme', theme);
+        }
+        const icons = { auto: '\ud83d\udd04', light: '\u2600\ufe0f', dark: '\ud83c\udf19' };
+        const btn = document.getElementById('themeToggle');
+        if (btn) btn.textContent = icons[theme] || '\ud83d\udd04';
+    }
+
+    function cycleTheme() {
+        const current = localStorage.getItem('inboxdna-theme') || 'auto';
+        const order = ['auto', 'light', 'dark'];
+        const next = order[(order.indexOf(current) + 1) % order.length];
+        localStorage.setItem('inboxdna-theme', next);
+        applyTheme(next);
+    }
+
+    // ---- Themed confirm modal ----
+    const _skipConfirm = {};
+
+    function showConfirm({ title, message, confirmText = 'Confirm', icon = '\u26a0\ufe0f', style = '', rememberKey = null }) {
+        return new Promise(resolve => {
+            if (rememberKey && _skipConfirm[rememberKey]) { resolve(true); return; }
+            _modalLastFocused = document.activeElement;
+            const overlay = document.getElementById('confirmModal');
+            overlay.setAttribute('role', 'dialog');
+            overlay.setAttribute('aria-modal', 'true');
+            overlay.setAttribute('aria-label', title);
+            overlay.innerHTML = `
+                <div class="modal-box">
+                    <div class="modal-icon">${icon}</div>
+                    <div class="modal-title">${escapeHtml(title)}</div>
+                    <div class="modal-message">${escapeHtml(message)}</div>
+                    ${rememberKey ? `<label class="modal-remember"><input type="checkbox" id="modalRemember"> Don't ask again this session</label>` : ''}
+                    <div class="modal-actions">
+                        <button id="modalCancel">Cancel</button>
+                        <button class="modal-confirm ${style}" id="modalOk">${escapeHtml(confirmText)}</button>
+                    </div>
+                </div>`;
+            requestAnimationFrame(() => overlay.classList.add('visible'));
+
+            function trapFocus(e) {
+                if (e.key !== 'Tab') return;
+                const focusable = overlay.querySelectorAll('button, input, [tabindex]:not([tabindex="-1"])');
+                if (focusable.length === 0) return;
+                const first = focusable[0];
+                const last = focusable[focusable.length - 1];
+                if (e.shiftKey && document.activeElement === first) {
+                    e.preventDefault(); last.focus();
+                } else if (!e.shiftKey && document.activeElement === last) {
+                    e.preventDefault(); first.focus();
+                }
+            }
+            overlay.addEventListener('keydown', trapFocus);
+
+            function close(result) {
+                if (result && rememberKey && document.getElementById('modalRemember')?.checked) {
+                    _skipConfirm[rememberKey] = true;
+                }
+                overlay.removeEventListener('keydown', trapFocus);
+                overlay.classList.remove('visible');
+                setTimeout(() => { overlay.innerHTML = ''; }, 150);
+                if (_modalLastFocused) { _modalLastFocused.focus(); _modalLastFocused = null; }
+                resolve(result);
+            }
+            document.getElementById('modalCancel').onclick = () => close(false);
+            document.getElementById('modalOk').onclick = () => close(true);
+            overlay.onclick = (e) => { if (e.target === overlay) close(false); };
+            document.getElementById('modalOk').focus();
+        });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        loadImpactStats();
+        initModalAccessibility();
+    });
+
+    // ---- Faster escapeHtml (regex-based) ----
+    const _escapeMap = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+    function escapeHtml(str) {
+        return String(str).replace(/[&<>"']/g, c => _escapeMap[c]);
+    }
+
+    // ---- API helper with error handling ----
+    async function apiCall(url, body, timeoutMs = 30000) {
+        const jsonStr = JSON.stringify(body);
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: jsonStr,
+                signal: controller.signal
+            });
+            clearTimeout(timer);
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({ error: `HTTP ${res.status}` }));
+                throw new Error(err.error || `Request failed: ${res.status}`);
+            }
+            const data = await res.json();
+            return data;
+        } catch (err) {
+            clearTimeout(timer);
+            if (err.name === 'AbortError') {
+                throw new Error('Request timed out. Gmail may be rate-limiting. Wait a moment and try again.');
+            }
+            throw err;
+        }
+    }
+
+    // ---- Modal accessibility ----
+    function initModalAccessibility() {
+        // Close on overlay click
+        document.querySelectorAll('.modal-overlay').forEach(overlay => {
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) overlay.classList.remove('visible');
+            });
+        });
+        // Close on Escape
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal-overlay.visible').forEach(m => m.classList.remove('visible'));
+                closeDNA();
+            }
+        });
+    }
+
+    // ---- Views ----
+    function setView(view) {
+        currentView = view;
+        document.getElementById('btnListView').classList.toggle('active', view === 'list');
+        document.getElementById('btnTriageView').classList.toggle('active', view === 'triage');
+        document.getElementById('btnInsightsView').classList.toggle('active', view === 'insights');
+        document.getElementById('btnListView').setAttribute('aria-pressed', view === 'list');
+        document.getElementById('btnTriageView').setAttribute('aria-pressed', view === 'triage');
+        document.getElementById('btnInsightsView').setAttribute('aria-pressed', view === 'insights');
+        document.getElementById('content').style.display = view === 'list' ? 'block' : 'none';
+        document.getElementById('triageView').classList.toggle('active', view === 'triage');
+        document.getElementById('insightsView').style.display = view === 'insights' ? 'block' : 'none';
+        document.title = 'InboxDNA - ' + view.charAt(0).toUpperCase() + view.slice(1);
+        if (view === 'triage') startTriage();
+        if (view === 'insights') loadInsights();
+    }
+
+    // ---- Impact stats ----
+    async function loadImpactStats() {
+        try {
+            const res = await fetch('/api/stats');
+            const stats = await res.json();
+            if (stats.emails_cleaned > 0) {
+                document.getElementById('impactCount').textContent = stats.emails_cleaned.toLocaleString();
+                document.getElementById('impactCO2').textContent = formatCO2(stats.co2_saved_grams);
+                document.getElementById('impactStorage').textContent = formatSize(stats.storage_freed_bytes);
+                document.getElementById('impactBanner').classList.add('visible');
+            }
+        } catch (e) { console.warn('Failed to load impact stats:', e); }
+    }
+
+    function formatCO2(grams) {
+        if (grams >= 1000) return (grams / 1000).toFixed(1) + ' kg';
+        return grams + 'g';
+    }
+
+    // ---- Scan ----
+    async function scanInbox() {
+        const btn = document.getElementById('btnScan');
+        const content = document.getElementById('content');
+        const limit = document.getElementById('scanLimit').value;
+        const unreadOnly = document.getElementById('unreadOnly').checked;
+
+        btn.disabled = true;
+        btn.textContent = 'Scanning...';
+        content.innerHTML = `<div class="loading"><div class="spinner"></div><p>Scanning ${unreadOnly ? 'unread' : 'all'} inbox messages...</p></div>`;
+        showProgress(true);
+
+        try {
+            async function fetchWithRetry(url, retries = 2) {
+                for (let i = 0; i <= retries; i++) {
+                    const res = await fetch(url);
+                    if (res.ok || (res.status !== 503 && res.status !== 429) || i === retries) return res;
+                    await new Promise(r => setTimeout(r, 1000 * (i + 1)));
+                }
+            }
+            const refresh = document.getElementById('forceRefresh')?.checked || false;
+            const [scanRes, labelRes] = await Promise.all([
+                fetchWithRetry(`/api/scan?limit=${limit}&unread=${unreadOnly}&refresh=${refresh}`),
+                fetchWithRetry('/api/labels')
+            ]);
+            if (!scanRes.ok) throw new Error('Failed to scan inbox. Try again.');
+            if (!labelRes.ok) throw new Error('Failed to load labels.');
+
+            const scanText = await scanRes.text();
+            const data = JSON.parse(scanText);
+            allLabels = await labelRes.json();
+            senderData = data.senders;
+
+            document.getElementById('stat-total').textContent = `${data.total} msgs`;
+            document.getElementById('stat-unread').textContent = `${data.total_unread} unread`;
+            document.getElementById('stat-senders').textContent = `${data.senders.length} senders`;
+            document.getElementById('stat-size').textContent = formatSize(data.total_size);
+
+            buildCategoryFilters();
+            applySortAndFilter();
+            setTimeout(() => showBmcToast('scan'), 2000);
+        } catch (err) {
+            content.innerHTML = `<div class="loading"><p style="color:#d93025;">${escapeHtml(err.message)}</p>
+                <button onclick="scanInbox()" style="margin-top:12px; padding:8px 16px; background:#1a73e8; color:white; border:none; border-radius:6px; cursor:pointer;">Try Again</button></div>`;
+        }
+
+        btn.disabled = false;
+        btn.textContent = 'Scan Inbox';
+        showProgress(false);
+    }
+
+    // ---- Filters & sort ----
+    let activeCategory = 'all';
+    let filterTimeout;
+
+    function debouncedFilter() {
+        clearTimeout(filterTimeout);
+        filterTimeout = setTimeout(applySortAndFilter, 200);
+    }
+
+    function buildCategoryFilters() {
+        const cats = {};
+        senderData.forEach(s => { cats[s.category] = (cats[s.category] || 0) + s.count; });
+        const spamCount = senderData.filter(s => s.spam_score >= 50).reduce((sum, s) => sum + s.count, 0);
+        const lowEngCount = senderData.filter(s => s.read_rate <= 20 && s.count >= 2).reduce((sum, s) => sum + s.count, 0);
+        const container = document.getElementById('categoryFilters');
+        container.setAttribute('role', 'group');
+        container.setAttribute('aria-label', 'Category filters');
+        container.innerHTML =
+            `<button class="filter-chip active" role="radio" aria-checked="true" onclick="filterByCategory(this, 'all')">All</button>` +
+            (spamCount > 0 ? `<button class="filter-chip" role="radio" aria-checked="false" onclick="filterByCategory(this, 'marketing')" style="border-color:#e37400; color:#e37400;">Marketing (${spamCount})</button>` : '') +
+            (lowEngCount > 0 ? `<button class="filter-chip" role="radio" aria-checked="false" onclick="filterByCategory(this, 'low-engagement')" style="border-color:#d93025; color:#d93025;">Low Engagement (${lowEngCount})</button>` : '') +
+            Object.entries(cats).sort((a, b) => b[1] - a[1])
+                .map(([cat, count]) => `<button class="filter-chip" role="radio" aria-checked="false" onclick="filterByCategory(this, '${cat}')">${cat} (${count})</button>`).join('');
+    }
+
+    function filterByCategory(el, category) {
+        document.querySelectorAll('.filter-chip').forEach(c => {
+            c.classList.remove('active');
+            c.setAttribute('aria-checked', 'false');
+        });
+        el.classList.add('active');
+        el.setAttribute('aria-checked', 'true');
+        activeCategory = category;
+        applySortAndFilter();
+    }
+
+    function getFilteredSenders() {
+        const search = document.getElementById('searchBox').value.toLowerCase();
+        let filtered = senderData;
+        if (search) {
+            filtered = filtered.filter(s => s.name.toLowerCase().includes(search) || s.email.toLowerCase().includes(search));
+        }
+        if (activeCategory === 'marketing') filtered = filtered.filter(s => s.spam_score >= 50);
+        else if (activeCategory === 'low-engagement') filtered = filtered.filter(s => s.read_rate <= 20 && s.count >= 2);
+        else if (activeCategory !== 'all') filtered = filtered.filter(s => s.category === activeCategory);
+        return filtered;
+    }
+
+    function sortSenders(senders) {
+        const sortBy = document.getElementById('sortBy').value;
+        const sorted = [...senders];
+        switch (sortBy) {
+            case 'spam': sorted.sort((a, b) => b.spam_score - a.spam_score); break;
+            case 'unread': sorted.sort((a, b) => b.unread - a.unread); break;
+            case 'engagement': sorted.sort((a, b) => a.read_rate - b.read_rate); break;
+            case 'size': sorted.sort((a, b) => b.total_size - a.total_size); break;
+            case 'oldest': sorted.sort((a, b) => a.oldest_epoch - b.oldest_epoch); break;
+            case 'name': sorted.sort((a, b) => a.name.localeCompare(b.name)); break;
+            default: sorted.sort((a, b) => b.count - a.count);
+        }
+        return sorted;
+    }
+
+    let _initialRenderDone = false;
+
+    function applySortAndFilter() {
+        if (currentView !== 'list') return;
+        const filtered = sortSenders(getFilteredSenders());
+
+        // First render: full innerHTML build
+        if (!_initialRenderDone) {
+            renderSenders(filtered);
+            return;
+        }
+
+        // Subsequent renders: hide/show existing cards, reorder in DOM
+        const listEl = document.getElementById('senderList');
+        if (!listEl) { renderSenders(filtered); return; }
+
+        const visibleEmails = new Set(filtered.map(s => s.email));
+        const cards = listEl.querySelectorAll('.sender-card');
+        const cardMap = {};
+        cards.forEach(c => {
+            const email = c.dataset.email;
+            cardMap[email] = c;
+            c.style.display = visibleEmails.has(email) ? '' : 'none';
+        });
+
+        // Reorder visible cards to match sort order
+        filtered.forEach(s => {
+            const card = cardMap[s.email];
+            if (card) listEl.appendChild(card);
+        });
+
+        // Update select-all count
+        const selectAllLabel = document.querySelector('.select-all-bar label');
+        if (selectAllLabel) {
+            const cb = selectAllLabel.querySelector('input');
+            selectAllLabel.innerHTML = '';
+            selectAllLabel.appendChild(cb);
+            selectAllLabel.append(` Select all visible (${filtered.length} senders)`);
+        }
+
+        // Update show-more button
+        const btn = document.getElementById('showMoreBtn');
+        if (btn) btn.style.display = 'none';
+
+        focusedCardIndex = -1;
+    }
+
+    // ---- Sender avatar helper ----
+    function senderAvatar(name, email) {
+        const letter = (name && name.length > 0 ? name[0] : '?').toUpperCase();
+        // Deterministic color from email hash
+        let hash = 0;
+        const str = email || name || '';
+        for (let i = 0; i < str.length; i++) {
+            hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            hash = hash & hash; // Convert to 32-bit int
+        }
+        const colors = [
+            '#1a73e8', '#e37400', '#d93025', '#137333', '#7627bb',
+            '#185abc', '#b06000', '#a50e0e', '#0d652d', '#681da8',
+            '#1967d2', '#e8710a', '#c5221f', '#188038', '#8430ce'
+        ];
+        const color = colors[Math.abs(hash) % colors.length];
+        return `<div class="sender-avatar" style="background:${color}">${escapeHtml(letter)}</div>`;
+    }
+
+    // ---- Render list view (lazy messages) ----
+    let _renderBatchSize = 50;
+    let _allFilteredSenders = [];
+
+    function renderSenderCard(sender) {
+        const catClass = `category-${sender.category.toLowerCase()}`;
+        const isSelected = selectedSenders.has(sender.email);
+        const escapedEmail = sender.email.replace(/'/g, "\\'");
+
+        let spamIndicator = '';
+        if (sender.spam_score >= 60) {
+            spamIndicator = `<span class="spam-badge high">Marketing ${sender.spam_score}%</span>`;
+        } else if (sender.spam_score >= 35) {
+            spamIndicator = `<span class="spam-badge medium">Maybe ${sender.spam_score}%</span>`;
+        } else if (sender.spam_score > 0) {
+            spamIndicator = `<div class="spam-meter" role="meter" aria-label="Spam score" aria-valuenow="${sender.spam_score}" aria-valuemin="0" aria-valuemax="100" title="Spam score: ${sender.spam_score}%"><div class="fill low" style="width:${sender.spam_score}%"></div></div>`;
+        }
+
+        let readIndicator = '';
+        if (sender.unread > 0) {
+            readIndicator = `<span class="badge unread">${sender.unread} unread</span>`;
+        } else if (sender.count >= 2 && sender.read_rate <= 20) {
+            readIndicator = `<span class="badge engagement-low">${sender.read_rate}% read</span>`;
+        }
+
+        const unsubHtml = sender.has_unsubscribe ? `<span class="unsub-icon" role="img" aria-label="Has unsubscribe header" title="Has unsubscribe header">&#9993;</span>` : '';
+        const sizeBadge = sender.total_size > 100000 ? `<span class="badge size">${formatSize(sender.total_size)}</span>` : '';
+
+        return `
+            <div class="sender-card ${isSelected ? 'selected' : ''}" data-email="${escapeHtml(sender.email)}">
+                <div class="sender-header">
+                    <input type="checkbox" aria-label="Select ${escapeHtml(sender.name)}" ${isSelected ? 'checked' : ''}
+                        onchange="toggleSender('${escapedEmail}', this.checked)" onclick="event.stopPropagation()">
+                    ${senderAvatar(sender.name, sender.email)}
+                    <div class="sender-info" onclick="toggleExpand(this)">
+                        <div class="sender-name"><button onclick="event.stopPropagation(); showDNACard('${escapedEmail}')" style="background:none; border:none; padding:0; cursor:pointer; color:inherit; font:inherit; text-align:left; border-bottom:1px dashed var(--border);" aria-label="View profile for ${escapeHtml(sender.name)}">${escapeHtml(sender.name)}</button><button class="dna-info-btn" onclick="event.stopPropagation(); showDNACard('${escapedEmail}')" title="View sender DNA profile">&#8505;</button> ${unsubHtml}${sender.decision === 'blocked' ? ' <span class="badge-decision blocked">Blocked</span>' : ''}${sender.decision === 'unsubscribed' ? ' <span class="badge-decision unsubscribed">Unsubscribed</span>' : ''}</div>
+                        <div class="sender-email">${escapeHtml(sender.email)}</div>
+                    </div>
+                    <div class="quick-actions">
+                        <button onclick="event.stopPropagation(); quickArchive('${escapedEmail}')">Archive</button>
+                        <button class="q-delete" onclick="event.stopPropagation(); quickDelete('${escapedEmail}')">Delete</button>
+                        <button class="q-block" onclick="event.stopPropagation(); quickBlock('${escapedEmail}')">Block</button>
+                        <button class="q-danger" onclick="event.stopPropagation(); quickUnsubDelete('${escapedEmail}')">Unsub+Del</button>
+                    </div>
+                    <div class="sender-meta">
+                        ${spamIndicator} ${readIndicator} ${sizeBadge}
+                        <span class="badge category ${catClass}">${sender.category}</span>
+                        <span class="badge count">${sender.count}</span>
+                        <button class="expand-btn" onclick="toggleExpand(this)" aria-expanded="false" aria-label="Expand messages from ${escapeHtml(sender.name)}">&#9654;</button>
+                    </div>
+                </div>
+                <div class="sender-messages"></div>
+            </div>`;
+    }
+
+    function showMoreSenders() {
+        const listEl = document.getElementById('senderList');
+        const btn = document.getElementById('showMoreBtn');
+        if (!listEl || !btn) return;
+        const current = listEl.children.length;
+        const next = _allFilteredSenders.slice(current, current + _renderBatchSize);
+        const frag = document.createRange().createContextualFragment(next.map(renderSenderCard).join(''));
+        listEl.appendChild(frag);
+        if (current + next.length >= _allFilteredSenders.length) {
+            btn.style.display = 'none';
+        } else {
+            btn.textContent = `Show more (${_allFilteredSenders.length - current - next.length} remaining)`;
+        }
+    }
+
+    function renderSenders(senders) {
+        const content = document.getElementById('content');
+        _initialRenderDone = false;
+
+        if (!senders.length) {
+            if (senderData.length === 0) {
+                content.innerHTML = `<div class="empty-state">
+                    <div class="empty-icon" aria-hidden="true">&#127881;</div>
+                    <h2>Inbox is clean!</h2>
+                    <p>No messages to review. Scan again to check for new mail.</p>
+                </div>`;
+            } else {
+                content.innerHTML = `<div class="empty-state">
+                    <p>No senders match your current filters.</p>
+                    <button onclick="document.getElementById('searchBox').value=''; activeCategory='all'; buildCategoryFilters(); applySortAndFilter();"
+                        style="margin-top:12px; padding:8px 16px; background:#1a73e8; color:white; border:none; border-radius:6px; cursor:pointer;">Clear Filters</button>
+                </div>`;
+            }
+            return;
+        }
+
+        _allFilteredSenders = senders;
+        const visible = senders.slice(0, _renderBatchSize);
+
+        const spamSenders = senders.filter(s => s.spam_score >= 50);
+        const spamMsgCount = spamSenders.reduce((sum, s) => sum + s.count, 0);
+
+        let html = '<h2 class="visually-hidden">Sender List</h2>';
+        html += renderAnalytics(senders);
+
+        if (spamSenders.length > 0) {
+            html += `<div class="spam-summary visible">
+                <h3>Marketing / Automated Emails Detected</h3>
+                <p><b>${spamSenders.length} senders</b> (${spamMsgCount} messages) look like marketing or automated notifications.</p>
+                <div class="actions">
+                    <button class="warning" onclick="selectAllSpam()">Select All Marketing</button>
+                </div>
+            </div>`;
+        }
+
+        html += `<div class="select-all-bar">
+            <label><input type="checkbox" onchange="toggleSelectAll(this)"> Select all visible (${senders.length} senders)</label>
+        </div>`;
+
+        html += `<div id="senderList">${visible.map(renderSenderCard).join('')}</div>`;
+
+        if (senders.length > _renderBatchSize) {
+            html += `<button id="showMoreBtn" onclick="showMoreSenders()" style="display:block; margin:16px auto; padding:10px 24px; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); cursor:pointer; font-size:13px;">Show more (${senders.length - _renderBatchSize} remaining)</button>`;
+        }
+
+        content.innerHTML = html;
+        focusedCardIndex = -1;
+        _initialRenderDone = true;
+        const announce = document.getElementById('liveAnnounce');
+        if (announce) announce.textContent = `Showing ${senders.length} senders`;
+    }
+
+    // ---- Compact analytics summary ----
+    function renderAnalytics(senders) {
+        const totalMsgs = senders.reduce((s, x) => s + x.count, 0);
+        const totalUnread = senders.reduce((s, x) => s + x.unread, 0);
+        const totalSize = senders.reduce((s, x) => s + x.total_size, 0);
+        const cleanupCount = senders.filter(s => s.spam_score >= 50).reduce((s, x) => s + x.count, 0)
+            + senders.filter(s => s.read_rate <= 20 && s.count >= 2).reduce((s, x) => s + x.count, 0);
+
+        return `<div class="analytics-summary">
+            <div class="stat-group"><span class="stat-value">${totalMsgs}</span><span class="stat-label">messages</span></div>
+            <div class="stat-group"><span class="stat-value">${totalUnread}</span><span class="stat-label">unread</span></div>
+            <div class="stat-group"><span class="stat-value">${formatSize(totalSize)}</span><span class="stat-label">total</span></div>
+            <div class="stat-group"><span class="stat-value cleanup-value">${cleanupCount}</span><span class="stat-label">cleanup candidates</span></div>
+        </div>`;
+    }
+
+    // ---- Triage view ----
+    function startTriage() {
+        // Pre-compute triage order once (fixes unstable sort bug)
+        triageQueue = sortSenders(getFilteredSenders()).map(s => s.email);
+        triageIndex = 0;
+        renderTriageCard();
+    }
+
+    let currentTriageSender = null;
+
+    function renderTriageCard() {
+        const container = document.getElementById('triageCardContainer');
+        const progressFill = document.getElementById('triageProgressFill');
+        const progressText = document.getElementById('triageProgressText');
+        const totalInQueue = triageQueue.length;
+
+        // Find next sender that still exists in senderData
+        while (triageIndex < totalInQueue) {
+            const email = triageQueue[triageIndex];
+            currentTriageSender = senderData.find(s => s.email === email);
+            if (currentTriageSender) break;
+            triageIndex++; // Skip senders already removed
+        }
+
+        if (triageIndex >= totalInQueue || !currentTriageSender) {
+            const reviewed = totalInQueue;
+            container.innerHTML = `<div class="empty-state">
+                <div class="empty-icon" aria-hidden="true">&#127881;</div>
+                <h2>All done!</h2>
+                <p>You've reviewed all ${reviewed} senders.</p>
+                <button onclick="setView('list')" style="margin-top:12px; padding:10px 20px; background:#1a73e8; color:white; border:none; border-radius:6px; cursor:pointer; font-size:14px;">Back to List</button>
+            </div>`;
+            progressFill.style.width = '100%';
+            progressText.textContent = `${reviewed} / ${reviewed} senders reviewed`;
+            // Confetti on triage completion
+            launchConfetti();
+            return;
+        }
+
+        progressFill.style.width = `${triageIndex / totalInQueue * 100}%`;
+        progressText.textContent = `${triageIndex + 1} / ${totalInQueue} senders`;
+
+        const s = currentTriageSender;
+        const engText = s.count >= 2 ? `${s.read_rate}% read rate` : '';
+
+        container.innerHTML = `
+            <div class="triage-card" id="triageCard">
+                <div class="triage-sender-name">${escapeHtml(s.name)}</div>
+                <div class="triage-sender-email">${escapeHtml(s.email)}</div>
+                <div class="triage-stats">
+                    <div class="triage-stat"><div class="num">${s.count}</div><div class="label">emails</div></div>
+                    <div class="triage-stat"><div class="num">${s.unread}</div><div class="label">unread</div></div>
+                    <div class="triage-stat"><div class="num">${s.spam_score}%</div><div class="label">spam score</div></div>
+                    <div class="triage-stat"><div class="num secondary">${formatSize(s.total_size)}</div><div class="label">size</div></div>
+                </div>
+                ${engText ? `<p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">${engText}</p>` : ''}
+                <div class="triage-subjects" id="triageSubjects">Loading subjects...</div>
+                <div class="triage-actions">
+                    <button class="btn-keep" onclick="triageAction('keep')">Keep</button>
+                    <button class="btn-archive" onclick="triageAction('archive')">Archive</button>
+                    <button class="btn-delete" onclick="triageAction('delete')">Delete</button>
+                    <button class="btn-block" onclick="triageAction('block')">Block</button>
+                    <button class="btn-unsub" onclick="triageAction('unsub')">Unsub + Delete</button>
+                </div>
+                <div class="triage-hint">
+                    Keys: K Keep &middot; A Archive &middot; D Delete &middot; B Block &middot; U Unsub+Delete
+                </div>
+            </div>`;
+
+        // Lazy-load subjects for triage preview
+        fetch(`/api/sender_messages?email=${encodeURIComponent(s.email)}`)
+            .then(r => r.json()).then(msgs => {
+                const el = document.getElementById('triageSubjects');
+                if (!el) return;
+                el.innerHTML = msgs.slice(0, 5).map(m => `<div>${escapeHtml(m.subject)}</div>`).join('')
+                    + (msgs.length > 5 ? `<div style="color:#aaa;">...and ${msgs.length - 5} more</div>` : '');
+            }).catch(e => { console.warn('Failed to load triage subjects:', e); });
+    }
+
+    let triageProcessing = false;
+
+    async function triageAction(action) {
+        if (triageProcessing) return;
+        const s = currentTriageSender;
+        if (!s) return;
+
+        // Confirmation for destructive actions
+        if (action === 'delete' && !await showConfirm({ title: 'Delete emails', message: `Delete all ${s.count} emails from ${s.name}?`, confirmText: 'Delete', icon: '\ud83d\uddd1\ufe0f', rememberKey: 'delete' })) return;
+        if (action === 'block' && !await showConfirm({ title: 'Block sender', message: `Block ${s.name}? Future emails will skip inbox.`, confirmText: 'Block', icon: '\ud83d\udeab', style: 'warn', rememberKey: 'block' })) return;
+        if (action === 'unsub' && !await showConfirm({ title: 'Unsubscribe & delete', message: `Unsubscribe and delete all ${s.count} emails from ${s.name}? Future emails will be auto-trashed.`, confirmText: 'Unsubscribe & Delete', icon: '\ud83d\uddd1\ufe0f', rememberKey: 'unsub' })) return;
+
+        triageProcessing = true;
+
+        const card = document.getElementById('triageCard');
+        const senderEmail = s.email;
+
+        // Animate card
+        if (action === 'keep') card.classList.add('swipe-right');
+        else if (action === 'delete' || action === 'unsub') card.classList.add('swipe-up');
+        else card.classList.add('swipe-left');
+
+        try {
+            const ids = action !== 'keep' ? await getSenderIds(senderEmail) : [];
+            if (action === 'archive') {
+                await apiCall('/api/archive', {message_ids: ids, sender: senderEmail});
+                showStatus(`Archived ${ids.length} from ${s.name}`, 2000);
+            } else if (action === 'delete') {
+                await apiCall('/api/delete', {message_ids: ids, sender: senderEmail});
+                showStatus(`Deleted ${ids.length} from ${s.name}`, 2000);
+            } else if (action === 'block') {
+                await apiCall('/api/block', {sender: senderEmail, message_ids: ids});
+                showStatusWithUndo(`Blocked ${s.name}`);
+            } else if (action === 'unsub') {
+                await apiCall('/api/unsubscribe_and_delete', {sender: senderEmail, message_ids: ids});
+                showStatusWithUndo(`Unsubscribed & deleted from ${s.name}`);
+            }
+
+            if (action !== 'keep') {
+                senderData = senderData.filter(x => x.email !== senderEmail);
+                updateStats();
+                loadImpactStats();
+            }
+        } catch (err) {
+            showStatus(`Error: ${err.message}`, 5000);
+        }
+
+        triageIndex++;
+        setTimeout(() => { renderTriageCard(); triageProcessing = false; }, 350);
+    }
+
+    // Keyboard shortcuts for triage and list view
+    document.addEventListener('keydown', (e) => {
+        // Guard against input focus
+        if (e.target.matches('input, select, textarea')) return;
+
+        if (currentView === 'triage') {
+            const key = e.key.toLowerCase();
+            if (key === 'k' || e.key === 'ArrowRight') triageAction('keep');
+            else if (key === 'a' || e.key === 'ArrowLeft') triageAction('archive');
+            else if (key === 'd') triageAction('delete');
+            else if (key === 'b') triageAction('block');
+            else if (key === 'u') triageAction('unsub');
+        } else if (currentView === 'list') {
+            // List view keyboard shortcuts
+            const cards = document.querySelectorAll('.sender-card');
+            if (!cards.length) return;
+
+            const key = e.key.toLowerCase();
+
+            if (key === 'j' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                focusCard(Math.min(focusedCardIndex + 1, cards.length - 1));
+            } else if (key === 'k' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                focusCard(Math.max(focusedCardIndex - 1, 0));
+            } else if (key === 'x' && focusedCardIndex >= 0 && focusedCardIndex < cards.length) {
+                const card = cards[focusedCardIndex];
+                const email = card.dataset.email;
+                const cb = card.querySelector('input[type="checkbox"]');
+                cb.checked = !cb.checked;
+                toggleSender(email, cb.checked);
+            } else if (key === 'e' && focusedCardIndex >= 0 && focusedCardIndex < cards.length) {
+                const card = cards[focusedCardIndex];
+                const email = card.dataset.email;
+                quickArchive(email);
+            } else if (e.key === 'Enter' && focusedCardIndex >= 0 && focusedCardIndex < cards.length) {
+                e.preventDefault();
+                const card = cards[focusedCardIndex];
+                const btn = card.querySelector('.expand-btn');
+                if (btn) toggleExpand(btn);
+            } else if (key === '?') {
+                showStatus('J/K: navigate | X: select | E: archive | Enter: expand | ?: help', 4000);
+            }
+        }
+    });
+
+    function focusCard(index) {
+        const cards = document.querySelectorAll('.sender-card');
+        if (index < 0 || index >= cards.length) return;
+        // Remove old focus
+        if (focusedCardIndex >= 0 && focusedCardIndex < cards.length) {
+            cards[focusedCardIndex].classList.remove('focused');
+        }
+        focusedCardIndex = index;
+        cards[focusedCardIndex].classList.add('focused');
+        cards[focusedCardIndex].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }
+
+    // ---- Insights view (Time Machine + Ghost Rules) ----
+
+    async function loadInsights() {
+        const grid = document.getElementById('insightsGrid');
+        grid.innerHTML = '<div class="loading"><div class="spinner"></div><p>Loading insights...</p></div>';
+
+        try {
+            const [tmRes, grRes, hyRes, drRes, stRes, hmRes, rdRes, prRes] = await Promise.all([
+                fetch('/api/time_machine'), fetch('/api/ghost_rules'),
+                fetch('/api/hygiene_score'), fetch('/api/decay_radar'),
+                fetch('/api/storage'), fetch('/api/heatmap'),
+                fetch('/api/reply_debt'), fetch('/api/privacy_report')
+            ]);
+            async function safeJson(res) { return res.ok ? await res.json() : {}; }
+            const tm = await safeJson(tmRes);
+            const gr = await safeJson(grRes);
+            const hy = await safeJson(hyRes);
+            const dr = await safeJson(drRes);
+            const st = await safeJson(stRes);
+            const hm = await safeJson(hmRes);
+            const rd = await safeJson(rdRes);
+            const pr = await safeJson(prRes);
+
+            let html = '';
+
+            // Hygiene Score card
+            html += renderHygieneCard(hy);
+
+            // Growth summary card
+            if (tm.growth) {
+                const g = tm.growth;
+                const weekChange = g.week_change ?? null;
+                const monthChange = g.month_change ?? null;
+                html += `<div class="insight-card">
+                    <h3>Inbox Growth</h3>
+                    <div style="font-size:32px; font-weight:700; color:var(--text);">${g.current.total_messages}</div>
+                    <div class="subtitle">messages in inbox</div>
+                    <div style="display:flex; gap:16px; margin-top:8px;">
+                        ${weekChange !== null ? `<div>vs last week: <span class="change-badge ${weekChange > 0 ? 'up' : weekChange < 0 ? 'down' : 'neutral'}">${weekChange > 0 ? '+' : ''}${weekChange}</span></div>` : '<div class="subtitle">Scan again next week to see trends</div>'}
+                        ${monthChange !== null ? `<div>vs last month: <span class="change-badge ${monthChange > 0 ? 'up' : monthChange < 0 ? 'down' : 'neutral'}">${monthChange > 0 ? '+' : ''}${monthChange}</span></div>` : ''}
+                    </div>
+                </div>`;
+            }
+
+            // Snapshot trend chart
+            if (tm.snapshots && tm.snapshots.length > 1) {
+                html += `<div class="insight-card">
+                    <h3>Message Trend</h3>
+                    <div class="subtitle">${tm.snapshots.length} scans recorded</div>
+                    ${renderSparkChart(tm.snapshots.map(s => s.total_messages), 280, 80)}
+                </div>`;
+            } else {
+                html += `<div class="insight-card">
+                    <h3>Message Trend</h3>
+                    <div class="subtitle">Keep scanning to build your trend chart. Each scan adds a data point.</div>
+                </div>`;
+            }
+
+            // New senders this month
+            html += `<div class="insight-card">
+                <h3>New Senders This Month</h3>
+                <div class="subtitle">${tm.new_senders.length} new senders detected</div>
+                <div style="max-height:200px; overflow-y:auto;">
+                    ${tm.new_senders.length > 0 ? tm.new_senders.slice(0, 15).map(s =>
+                        `<div class="new-sender-row">
+                            <span>${escapeHtml(s.from_name || s.from_email)}</span>
+                            <span style="color:var(--text-secondary);">${s.count} msgs</span>
+                        </div>`
+                    ).join('') : '<div class="subtitle">No new senders since last month.</div>'}
+                </div>
+            </div>`;
+
+            // Composition shift
+            if (tm.composition && tm.composition.length > 1) {
+                const cats = {};
+                tm.composition.forEach(s => Object.entries(s.categories).forEach(([c, n]) => { cats[c] = (cats[c] || 0) + n; }));
+                const sorted = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+                const total = sorted.reduce((s, [, n]) => s + n, 0);
+                html += `<div class="insight-card">
+                    <h3>Email Composition</h3>
+                    <div class="subtitle">Category breakdown across recent scans</div>
+                    <div style="margin-top:8px;">
+                        ${sorted.map(([cat, count]) => {
+                            const pct = Math.round(count / total * 100);
+                            const colors = {Promotions:'#137333',Updates:'#1a73e8',Social:'#e37400',Forums:'#7627bb',Other:'#888'};
+                            return `<div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
+                                <div style="width:80px; font-size:12px; color:var(--text-secondary);">${cat}</div>
+                                <div style="flex:1; height:18px; background:var(--border); border-radius:4px; overflow:hidden;">
+                                    <div style="height:100%; width:${pct}%; background:${colors[cat] || '#888'}; border-radius:4px;"></div>
+                                </div>
+                                <div style="width:40px; text-align:right; font-size:12px; font-weight:600;">${pct}%</div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>`;
+            }
+
+            // Reply Debt
+            html += renderReplyDebtCard(rd);
+
+            // Storage Visualizer
+            html += renderStorageCard(st);
+
+            // Quiet Hours Heatmap
+            html += renderHeatmapCard(hm);
+
+            // Decay Radar
+            html += renderDecayRadar(dr.decaying_senders);
+
+            // Privacy Audit
+            html += renderPrivacyCard(pr);
+
+            // Ghost Rules
+            html += `<div class="insight-card full-width">
+                <h3>Smart Filter Suggestions</h3>
+                <div class="subtitle">Based on your repeated actions</div>
+                <div id="ghostRulesContainer" style="margin-top:12px;">
+                    ${gr.rules.length > 0 ? gr.rules.map(r => renderGhostRule(r)).join('') :
+                      '<div class="subtitle" style="margin-top:8px;">No patterns detected yet. Keep using triage or quick actions to build up data.</div>'}
+                </div>
+            </div>`;
+
+            grid.innerHTML = html;
+            setTimeout(() => showBmcToast('insights'), 3000);
+        } catch (err) {
+            grid.innerHTML = `<div class="insight-card full-width"><p style="color:#d93025;">Failed to load insights: ${escapeHtml(err.message)}</p></div>`;
+        }
+    }
+
+    function renderSparkChart(values, width, height) {
+        if (!values.length) return '';
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const range = max - min || 1;
+        const pad = 4;
+        const w = width - pad * 2;
+        const h = height - pad * 2;
+        const points = values.map((v, i) => {
+            const x = pad + (i / (values.length - 1)) * w;
+            const y = pad + h - ((v - min) / range) * h;
+            return `${x},${y}`;
+        });
+        const linePoints = points.join(' ');
+        const areaPoints = linePoints + ` ${pad + w},${pad + h} ${pad},${pad + h}`;
+        const dots = values.length <= 20 ? points.map(p => {
+            const [cx, cy] = p.split(',');
+            return `<circle class="chart-dot" cx="${cx}" cy="${cy}" r="3"/>`;
+        }).join('') : '';
+        return `<svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" style="display:block;">
+            <polygon class="chart-area" points="${areaPoints}"/>
+            <polyline class="chart-line" points="${linePoints}"/>
+            ${dots}
+            <text class="chart-label" x="${pad}" y="${pad + h + 2}" dominant-baseline="hanging">${min}</text>
+            <text class="chart-label" x="${pad + w}" y="${pad + h + 2}" text-anchor="end" dominant-baseline="hanging">${max}</text>
+        </svg>`;
+    }
+
+    function renderHygieneCard(hy) {
+        const score = hy.score;
+        const color = score >= 70 ? '#137333' : score >= 40 ? '#e37400' : '#d93025';
+        const comp = hy.components || {};
+        const labels = {unread:'Unread', marketing:'Marketing', age:'Freshness', storage:'Storage', actions:'Actions'};
+
+        let badgesHtml = '';
+        if (hy.badges && hy.badges.length > 0) {
+            badgesHtml = `<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:12px;">
+                ${hy.badges.map(b => `<span title="${escapeHtml(b.badge_label)}" style="font-size:20px; cursor:default;">${b.badge_icon}</span>`).join('')}
+            </div>`;
+        }
+        if (hy.new_badges && hy.new_badges.length > 0) {
+            hy.new_badges.forEach(b => showStatus(`Badge earned: ${b.icon} ${b.label}`, 4000));
+        }
+
+        let trendHtml = '';
+        if (hy.history && hy.history.length > 1) {
+            trendHtml = renderSparkChart(hy.history.map(h => h.score), 140, 40);
+        }
+
+        const streakHtml = hy.streak > 0 ? `<div style="margin-top:8px; font-size:12px; color:var(--text-secondary);">🔥 ${hy.streak}-scan improvement streak</div>` : '';
+
+        return `<div class="insight-card">
+            <h3>Inbox Hygiene Score</h3>
+            <div style="display:flex; align-items:center; gap:20px;">
+                <div style="position:relative; width:90px; height:90px;">
+                    <svg width="90" height="90" viewBox="0 0 90 90">
+                        <circle cx="45" cy="45" r="38" fill="none" stroke="var(--border)" stroke-width="6"/>
+                        <circle cx="45" cy="45" r="38" fill="none" stroke="${color}" stroke-width="6"
+                            stroke-dasharray="${score * 2.39} 239" stroke-dashoffset="0"
+                            transform="rotate(-90 45 45)" stroke-linecap="round"/>
+                    </svg>
+                    <div style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:24px; font-weight:700; color:${color};">${score}</div>
+                </div>
+                <div style="flex:1;">
+                    ${Object.entries(comp).map(([k, v]) => `
+                        <div style="display:flex; align-items:center; gap:6px; margin-bottom:3px; font-size:11px;">
+                            <span style="width:60px; color:var(--text-secondary);">${labels[k] || k}</span>
+                            <div style="flex:1; height:6px; background:var(--border); border-radius:3px; overflow:hidden;">
+                                <div style="height:100%; width:${v * 5}%; background:${v >= 15 ? '#137333' : v >= 10 ? '#e37400' : '#d93025'}; border-radius:3px;"></div>
+                            </div>
+                            <span style="width:20px; text-align:right; font-weight:600;">${v}</span>
+                        </div>
+                    `).join('')}
+                    ${trendHtml}
+                </div>
+            </div>
+            ${streakHtml}
+            ${badgesHtml}
+        </div>`;
+    }
+
+    function renderReplyDebtCard(rd) {
+        const items = rd.unanswered || [];
+        if (!items.length) {
+            return `<div class="insight-card">
+                <h3>Reply Debt</h3>
+                <div style="text-align:center; padding:12px;">
+                    <div style="font-size:28px;">&#9989;</div>
+                    <div class="subtitle" style="margin-top:4px;">No unanswered emails from real people!</div>
+                </div>
+            </div>`;
+        }
+        const rows = items.slice(0, 10).map(d => {
+            const urgColor = d.urgency >= 50 ? '#d93025' : d.urgency >= 25 ? '#e37400' : 'var(--text-secondary)';
+            const ageText = d.age_days < 1 ? 'today' : d.age_days < 2 ? 'yesterday' : `${Math.round(d.age_days)}d ago`;
+            return `<div style="display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--border);">
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:13px; font-weight:500;">${escapeHtml(d.name)}${d.is_bidirectional ? ' <span style="font-size:10px; color:#1a73e8;">&#8596; mutual</span>' : ''}</div>
+                    <div style="font-size:12px; color:var(--text-secondary); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(d.subject)}</div>
+                </div>
+                <div style="font-size:11px; color:${urgColor}; white-space:nowrap;">${ageText}</div>
+                <a href="https://mail.google.com/mail/#inbox/${d.message_id}" target="_blank" rel="noopener"
+                   style="padding:4px 10px; font-size:11px; border-radius:5px; border:1px solid #1a73e8; background:none; color:#1a73e8; text-decoration:none; white-space:nowrap;">Open</a>
+            </div>`;
+        }).join('');
+
+        return `<div class="insight-card">
+            <h3 style="display:flex; justify-content:space-between; align-items:center;">Reply Debt
+                <button onclick="refreshReplyDebt()" style="font-size:11px; padding:3px 10px; border-radius:5px; border:1px solid var(--border); background:var(--surface); color:var(--text-secondary); cursor:pointer;">Refresh</button>
+            </h3>
+            <div class="subtitle">${items.length} email${items.length !== 1 ? 's' : ''} from real people may need a reply</div>
+            <div style="margin-top:8px; max-height:300px; overflow-y:auto;">${rows}</div>
+        </div>`;
+    }
+
+    function renderPrivacyCard(pr) {
+        const totalScanned = pr.total_scanned || 0;
+        const totals = pr.totals || {};
+        const trackerCount = totals.tracking_pixel || 0;
+        const sensitiveCount = totals.sensitive_data || 0;
+        const trackerSenders = pr.tracker_senders || [];
+        const sensitiveFindings = pr.sensitive_findings || [];
+
+        if (totalScanned === 0) {
+            return `<div class="insight-card full-width">
+                <h3>Privacy Audit</h3>
+                <div class="subtitle">Scan your emails locally for tracking pixels and sensitive data.</div>
+                <button onclick="runPrivacyAudit()" style="margin-top:10px; padding:8px 18px; background:#1a73e8; color:white; border:none; border-radius:6px; cursor:pointer; font-size:13px;">Run Privacy Audit (50 emails)</button>
+            </div>`;
+        }
+
+        // Privacy score: 100 minus deductions
+        let privScore = 100;
+        privScore -= Math.min(40, trackerSenders.length * 3);
+        privScore -= Math.min(30, sensitiveCount * 15);
+        privScore = Math.max(0, privScore);
+        const privColor = privScore >= 70 ? '#137333' : privScore >= 40 ? '#e37400' : '#d93025';
+
+        const trackersHtml = trackerSenders.length > 0 ? `
+            <div style="margin-top:10px;">
+                <div style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:4px;">Tracking Pixels Detected</div>
+                ${trackerSenders.slice(0, 8).map(t => `<div style="display:flex; justify-content:space-between; font-size:12px; padding:2px 0;">
+                    <span>${escapeHtml(t.sender_email)}</span>
+                    <span style="color:var(--text-secondary);">${t.cnt} tracker${t.cnt > 1 ? 's' : ''}</span>
+                </div>`).join('')}
+            </div>` : '';
+
+        const sensitiveHtml = sensitiveFindings.length > 0 ? `
+            <div style="margin-top:10px;">
+                <div style="font-size:12px; font-weight:600; color:#d93025; margin-bottom:4px;">&#9888; Sensitive Data Found</div>
+                ${sensitiveFindings.slice(0, 5).map(f => {
+                    const detail = JSON.parse(f.finding_detail || '{}');
+                    return `<div style="font-size:12px; padding:2px 0; color:var(--text-secondary);">${escapeHtml(detail.name || f.finding_type)} in email from ${escapeHtml(f.sender_email)}</div>`;
+                }).join('')}
+            </div>` : '';
+
+        return `<div class="insight-card full-width">
+            <h3>Privacy Audit</h3>
+            <div style="display:flex; align-items:center; gap:16px;">
+                <div style="text-align:center;">
+                    <div style="font-size:28px; font-weight:700; color:${privColor};">${privScore}</div>
+                    <div style="font-size:10px; color:var(--text-secondary);">privacy score</div>
+                </div>
+                <div style="flex:1;">
+                    <div style="font-size:13px;">${totalScanned} emails scanned</div>
+                    <div style="font-size:12px; color:var(--text-secondary);">${trackerCount} tracking pixel${trackerCount !== 1 ? 's' : ''} from ${trackerSenders.length} sender${trackerSenders.length !== 1 ? 's' : ''}${sensitiveCount > 0 ? ` · <span style="color:#d93025;">${sensitiveCount} sensitive data finding${sensitiveCount !== 1 ? 's' : ''}</span>` : ''}</div>
+                </div>
+                <button onclick="runPrivacyAudit()" style="padding:6px 14px; background:var(--surface); border:1px solid var(--border); border-radius:6px; cursor:pointer; font-size:12px; color:var(--text);">Scan More</button>
+            </div>
+            ${trackersHtml}
+            ${sensitiveHtml}
+        </div>`;
+    }
+
+    // ---- Email DNA Card (Feature 9) ----
+
+    async function showDNACard(email) {
+        _dnaLastFocused = document.activeElement;
+        const overlay = document.getElementById('dnaOverlay');
+        overlay.innerHTML = '<div class="dna-card"><div class="loading"><div class="spinner"></div><p>Loading profile...</p></div></div>';
+        requestAnimationFrame(() => overlay.classList.add('visible'));
+        try {
+            const res = await fetch(`/api/sender_profile?email=${encodeURIComponent(email)}`);
+            if (!res.ok) throw new Error('Failed to load profile');
+            const p = await res.json();
+            overlay.innerHTML = renderDNACard(p);
+        } catch (err) {
+            overlay.innerHTML = `<div class="dna-card"><p style="color:#d93025;">${escapeHtml(err.message)}</p><button onclick="closeDNA()">Close</button></div>`;
+        }
+    }
+
+    function closeDNA() {
+        const overlay = document.getElementById('dnaOverlay');
+        overlay.classList.remove('visible');
+        setTimeout(() => { overlay.innerHTML = ''; }, 150);
+        if (_dnaLastFocused) { _dnaLastFocused.focus(); _dnaLastFocused = null; }
+    }
+
+    function renderDNACard(p) {
+        const respectColor = p.respect_score >= 70 ? '#137333' : p.respect_score >= 40 ? '#e37400' : '#d93025';
+        const respectBg = p.respect_score >= 70 ? '#e6f4ea' : p.respect_score >= 40 ? '#fef7e0' : '#fce8e6';
+        const trendIcon = p.freq_trend === 'increasing' ? '&#9650;' : p.freq_trend === 'decreasing' ? '&#9660;' : '&#9644;';
+        const trendColor = p.freq_trend === 'increasing' ? '#d93025' : p.freq_trend === 'decreasing' ? '#137333' : 'var(--text-secondary)';
+        const escapedEmail = p.email.replace(/'/g, "\\'");
+
+        // Day distribution bars
+        const days = ['M','T','W','T','F','S','S'];
+        const maxDay = Math.max(1, ...p.day_distribution);
+        const dayBars = p.day_distribution.map((v, i) =>
+            `<div class="dna-bar-row"><div class="dna-bar-label">${days[i]}</div><div class="dna-bar"><div class="fill" style="width:${v/maxDay*100}%"></div></div></div>`
+        ).join('');
+
+        // Hour distribution bars (condensed to 6 groups)
+        const hourGroups = ['12a-4a','4a-8a','8a-12p','12p-4p','4p-8p','8p-12a'];
+        const hourVals = [];
+        for (let i = 0; i < 6; i++) {
+            let sum = 0;
+            for (let h = i*4; h < (i+1)*4; h++) sum += p.hour_distribution[h] || 0;
+            hourVals.push(sum);
+        }
+        const maxHour = Math.max(1, ...hourVals);
+        const hourBars = hourVals.map((v, i) =>
+            `<div class="dna-bar-row"><div class="dna-bar-label" style="width:40px;">${hourGroups[i]}</div><div class="dna-bar"><div class="fill" style="width:${v/maxHour*100}%"></div></div></div>`
+        ).join('');
+
+        // Dark patterns
+        const darkHtml = p.dark_patterns.length > 0
+            ? `<div class="dna-section"><h4>Dark Patterns Detected</h4>${p.dark_patterns.map(d => `<span class="dna-dark-pattern">${escapeHtml(d.type.replace(/_/g,' '))}</span>`).join('')}<div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">e.g. "${escapeHtml(p.dark_patterns[0].example)}"</div></div>`
+            : '';
+
+        // Tracking
+        const trackerHtml = p.tracking_pixel_count > 0
+            ? `<div style="font-size:12px; color:#e37400; margin-bottom:8px;">&#128065; ${p.tracking_pixel_count} tracking pixel${p.tracking_pixel_count > 1 ? 's' : ''} detected</div>`
+            : '';
+
+        // Action history
+        const actHtml = Object.keys(p.action_history).length > 0
+            ? `<div class="dna-section"><h4>Your Actions</h4><div style="font-size:12px;">${Object.entries(p.action_history).map(([a,c]) => `${a}: ${c} time${c>1?'s':''}`).join(' · ')}</div></div>`
+            : '';
+
+        return `<div class="dna-card">
+            <button onclick="closeDNA()" aria-label="Close profile" style="float:right; background:none; border:none; font-size:18px; cursor:pointer; color:var(--text-secondary);">&#10005;</button>
+            <div class="dna-header">
+                ${senderAvatar(p.name, p.email)}
+                <div>
+                    <div style="font-size:16px; font-weight:600;">${escapeHtml(p.name)}</div>
+                    <div style="font-size:12px; color:var(--text-secondary);">${escapeHtml(p.email)}</div>
+                </div>
+                <span class="dna-respect" style="background:${respectBg}; color:${respectColor};">${p.respect_score} respect</span>
+            </div>
+            <div class="dna-stat-grid">
+                <div class="dna-stat"><div class="val">${p.count}</div><div class="lbl">emails</div></div>
+                <div class="dna-stat"><div class="val">${p.read_rate}%</div><div class="lbl">read rate</div></div>
+                <div class="dna-stat"><div class="val">${p.freq_per_week}/wk</div><div class="lbl">frequency <span style="color:${trendColor}">${trendIcon}</span></div></div>
+                <div class="dna-stat"><div class="val">${formatSize(p.avg_size)}</div><div class="lbl">avg size</div></div>
+                <div class="dna-stat"><div class="val">${formatSize(p.total_size)}</div><div class="lbl">total</div></div>
+                <div class="dna-stat"><div class="val">${p.spam_score}%</div><div class="lbl">spam score</div></div>
+            </div>
+            ${trackerHtml}
+            ${darkHtml}
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                <div class="dna-section"><h4>Day Pattern</h4>${dayBars}</div>
+                <div class="dna-section"><h4>Time Pattern</h4>${hourBars}</div>
+            </div>
+            ${actHtml}
+            <div class="dna-actions">
+                <button onclick="closeDNA(); quickArchive('${escapedEmail}')">Archive All</button>
+                <button onclick="closeDNA(); quickBlock('${escapedEmail}')">Block</button>
+                <button class="danger" onclick="closeDNA(); quickUnsubDelete('${escapedEmail}')">Unsub+Del</button>
+            </div>
+        </div>`;
+    }
+
+    async function refreshReplyDebt() {
+        showStatus('Refreshing sent messages...');
+        try {
+            const res = await fetch('/api/reply_debt?refresh=true');
+            const rd = await res.json();
+            showStatus(`Reply debt updated: ${rd.total_debt} unanswered`, 3000);
+            loadInsights();
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); }
+    }
+
+    async function runPrivacyAudit() {
+        showStatus('Running privacy audit (scanning 50 emails)...');
+        try {
+            const data = await apiCall('/api/privacy_audit', {max_messages: 50}, 120000);
+            showStatus(`Scanned ${data.just_scanned} emails. Found ${(data.totals?.tracking_pixel || 0)} trackers.`, 4000);
+            loadInsights();
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); }
+    }
+
+    function renderStorageCard(st) {
+        const summary = st.summary || {};
+        const totalMB = ((summary.total_size || 0) / (1024 * 1024)).toFixed(1);
+        const senders = st.senders || [];
+        const hoarders = st.hoarders || [];
+
+        // Treemap: proportional rectangles for top senders
+        const topN = senders.slice(0, 20);
+        const maxSize = topN.length ? topN[0].total_size : 1;
+        const treemapColors = ['#1a73e8','#e37400','#d93025','#137333','#7627bb','#185abc','#b06000','#a50e0e','#0d652d','#681da8'];
+        const treemapHtml = topN.length ? `<div style="display:flex; flex-wrap:wrap; gap:2px; margin-top:8px;">
+            ${topN.map((s, i) => {
+                const pct = Math.max(4, Math.round(s.total_size / (senders.reduce((a,b) => a + b.total_size, 0) || 1) * 100));
+                const color = treemapColors[i % treemapColors.length];
+                const sizeMB = (s.total_size / (1024*1024)).toFixed(1);
+                return `<div title="${escapeHtml(s.from_name || s.from_email)}: ${sizeMB} MB (${s.count} msgs)"
+                    style="flex:${pct} 1 0; min-width:30px; height:${Math.max(24, Math.min(60, pct))}px; background:${color}; border-radius:4px; display:flex; align-items:center; justify-content:center; overflow:hidden; cursor:default;">
+                    <span style="font-size:9px; color:white; padding:2px 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${pct >= 8 ? escapeHtml((s.from_name || s.from_email).slice(0, 15)) : ''}</span>
+                </div>`;
+            }).join('')}
+        </div>` : '';
+
+        // Cost estimate
+        const costHtml = st.monthly_cost > 0
+            ? `<div style="margin-top:12px; padding:10px; background:var(--spam-summary-bg); border:1px solid var(--spam-summary-border); border-radius:8px; font-size:13px;">
+                At this rate you may need Google One (<b>$${st.monthly_cost}/mo</b>). Reclaim space by cleaning up top senders.
+               </div>`
+            : '';
+
+        // Storage progress bar
+        const pctUsed = st.pct_used || 0;
+        const barColor = pctUsed > 80 ? '#d93025' : pctUsed > 50 ? '#e37400' : '#137333';
+
+        // Attachment hoarders
+        const hoarderHtml = hoarders.length > 0 ? `
+            <div style="margin-top:12px;">
+                <div style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">Attachment Hoarders (large avg size)</div>
+                ${hoarders.slice(0, 5).map(h => `<div style="display:flex; justify-content:space-between; font-size:12px; padding:3px 0; border-bottom:1px solid var(--border);">
+                    <span>${escapeHtml(h.from_name || h.from_email)}</span>
+                    <span style="color:var(--text-secondary);">${(h.avg_size/1024).toFixed(0)} KB avg · ${(h.total_size/(1024*1024)).toFixed(1)} MB total</span>
+                </div>`).join('')}
+            </div>` : '';
+
+        return `<div class="insight-card full-width">
+            <h3>Storage Breakdown</h3>
+            <div style="display:flex; align-items:baseline; gap:8px;">
+                <span style="font-size:28px; font-weight:700;">${totalMB} MB</span>
+                <span class="subtitle" style="margin:0;">in inbox cache (est. ${st.estimated_total_gb || '?'} GB total Gmail)</span>
+            </div>
+            <div style="margin-top:8px;">
+                <div style="display:flex; justify-content:space-between; font-size:11px; color:var(--text-secondary); margin-bottom:3px;">
+                    <span>${pctUsed}% of 15 GB free tier (estimated)</span>
+                </div>
+                <div style="height:8px; background:var(--border); border-radius:4px; overflow:hidden;">
+                    <div style="height:100%; width:${Math.min(100,pctUsed)}%; background:${barColor}; border-radius:4px; transition:width 0.3s;"></div>
+                </div>
+            </div>
+            ${treemapHtml}
+            ${costHtml}
+            ${hoarderHtml}
+        </div>`;
+    }
+
+    function renderHeatmapCard(hm) {
+        const grid = hm.grid || [];
+        const lateNight = hm.late_night_senders || [];
+        if (!grid.length) return '';
+
+        const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+        const maxVal = Math.max(1, ...grid.flat());
+
+        // Build heatmap cells
+        let cellsHtml = '';
+        for (let d = 0; d < 7; d++) {
+            cellsHtml += `<div style="display:contents;">`;
+            cellsHtml += `<div style="font-size:10px; color:var(--text-secondary); text-align:right; padding-right:4px; line-height:16px;">${days[d]}</div>`;
+            for (let h = 0; h < 24; h++) {
+                const val = grid[d][h];
+                const intensity = val / maxVal;
+                const alpha = Math.round(intensity * 0.85 * 100) / 100;
+                const bg = val === 0 ? 'var(--border)' : `rgba(26, 115, 232, ${Math.max(0.1, alpha)})`;
+                cellsHtml += `<div title="${days[d]} ${h}:00 - ${val} emails" style="width:100%; aspect-ratio:1; background:${bg}; border-radius:2px; cursor:default;"></div>`;
+            }
+            cellsHtml += `</div>`;
+        }
+
+        // Hour labels
+        let hourLabels = '';
+        for (let h = 0; h < 24; h += 3) {
+            hourLabels += `<div style="grid-column:${h + 2}; font-size:9px; color:var(--text-secondary); text-align:center;">${h}</div>`;
+        }
+
+        const lateHtml = lateNight.length > 0 ? `
+            <div style="margin-top:14px;">
+                <div style="font-size:12px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;">Late Night Senders (10pm-7am)</div>
+                ${lateNight.slice(0, 8).map(s => `<div style="display:flex; justify-content:space-between; font-size:12px; padding:3px 0; border-bottom:1px solid var(--border);">
+                    <span>${escapeHtml(s.name)}</span>
+                    <span style="color:var(--text-secondary);">${s.late_count} of ${s.total} emails (${s.pct}%)</span>
+                </div>`).join('')}
+            </div>` : '';
+
+        return `<div class="insight-card full-width">
+            <h3>Quiet Hours Heatmap</h3>
+            <div class="subtitle">When your emails arrive (darker = more emails)</div>
+            <div style="display:grid; grid-template-columns:30px repeat(24, 1fr); gap:2px; margin-top:8px;">
+                <div></div>${hourLabels}
+                ${cellsHtml}
+            </div>
+            ${lateHtml}
+        </div>`;
+    }
+
+    function renderDecayRadar(senders) {
+        if (!senders || senders.length === 0) {
+            return `<div class="insight-card full-width">
+                <h3>Subscription Decay Radar</h3>
+                <div class="subtitle">No declining subscriptions detected yet. Keep scanning to build engagement history.</div>
+            </div>`;
+        }
+        const rows = senders.slice(0, 15).map(s => {
+            const barColor = s.decay_score >= 70 ? '#d93025' : s.decay_score >= 40 ? '#e37400' : '#fbbc04';
+            return `<div style="display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--border);">
+                <div style="flex:1; min-width:0;">
+                    <div style="font-size:13px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(s.name)}</div>
+                    <div style="font-size:11px; color:var(--text-secondary);">${escapeHtml(s.suggestion)}</div>
+                </div>
+                <div style="width:60px; text-align:center;">
+                    <div style="height:6px; background:var(--border); border-radius:3px; overflow:hidden;">
+                        <div style="height:100%; width:${s.decay_score}%; background:${barColor}; border-radius:3px;"></div>
+                    </div>
+                    <div style="font-size:10px; color:var(--text-secondary); margin-top:2px;">${s.decay_score}%</div>
+                </div>
+                <div style="display:flex; gap:4px;">
+                    <button onclick="quickUnsubDelete('${s.email.replace(/'/g, "\\'")}')" style="padding:4px 10px; font-size:11px; border-radius:5px; border:1px solid #d93025; background:none; color:#d93025; cursor:pointer;">Unsub</button>
+                </div>
+            </div>`;
+        }).join('');
+
+        return `<div class="insight-card full-width">
+            <h3>Subscription Decay Radar</h3>
+            <div class="subtitle">${senders.length} subscriptions with declining engagement</div>
+            <div style="margin-top:8px; max-height:350px; overflow-y:auto;">${rows}</div>
+        </div>`;
+    }
+
+    function renderGhostRule(rule) {
+        const icons = {'auto-archive':'📦','auto-delete':'🗑️','auto-block':'🚫'};
+        return `<div class="ghost-rule-card" data-rule-id="${rule.id}">
+            <div class="ghost-icon">${icons[rule.suggested_action] || '👻'}</div>
+            <div class="ghost-info">
+                <p>${escapeHtml(rule.pattern_description)}</p>
+                <small>${rule.suggested_action} · ${Math.round(rule.confidence * 100)}% confidence</small>
+            </div>
+            <button class="accept" onclick="acceptGhostRule(${rule.id})">Create Filter</button>
+            <button onclick="dismissGhostRule(${rule.id})">Dismiss</button>
+        </div>`;
+    }
+
+    async function acceptGhostRule(id) {
+        try {
+            await apiCall(`/api/ghost_rules/${id}/accept`, {});
+            const card = document.querySelector(`.ghost-rule-card[data-rule-id="${id}"]`);
+            if (card) { card.innerHTML = '<div style="padding:8px; color:#137333; font-size:13px;">Filter created!</div>'; setTimeout(() => card.remove(), 2000); }
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); }
+    }
+
+    async function dismissGhostRule(id) {
+        try {
+            await fetch(`/api/ghost_rules/${id}/dismiss`, {method:'POST'});
+            const card = document.querySelector(`.ghost-rule-card[data-rule-id="${id}"]`);
+            if (card) card.remove();
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); }
+    }
+
+    // ---- Fetch message IDs on demand (no longer in scan response) ----
+    async function getSenderIds(email) {
+        const res = await fetch(`/api/sender_ids?email=${encodeURIComponent(email)}`);
+        const data = await res.json();
+        return data.message_ids || [];
+    }
+
+    // Concurrency-limited parallel execution for bulk operations
+    async function parallelLimit(tasks, limit = 5) {
+        const results = [];
+        let i = 0;
+        async function runNext() {
+            while (i < tasks.length) {
+                const idx = i++;
+                results[idx] = await tasks[idx]().catch(e => ({ error: e }));
+            }
+        }
+        await Promise.all(Array.from({ length: Math.min(limit, tasks.length) }, runNext));
+        return results;
+    }
+
+    // ---- Quick actions (guarded against concurrent ops) ----
+    let _quickActionBusy = false;
+
+    async function quickArchive(email) {
+        if (_quickActionBusy) return;
+        const s = senderData.find(x => x.email === email);
+        if (!s) return;
+        _quickActionBusy = true;
+        const name = s.name;
+        showStatus(`Archiving ${s.count} from ${name}...`);
+        try {
+            const ids = await getSenderIds(email);
+            await apiCall('/api/archive', {message_ids: ids, sender: email});
+            removeSenderByEmail(email);
+            showStatusWithUndo(`Archived ${ids.length} messages from ${name}`);
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); } finally { _quickActionBusy = false; }
+    }
+
+    async function quickDelete(email) {
+        if (_quickActionBusy) return;
+        const s = senderData.find(x => x.email === email);
+        if (!s) return;
+        const count = s.count;
+        const name = s.name;
+        if (!await showConfirm({ title: 'Delete emails', message: `Delete all ${count} emails from ${name}?`, confirmText: 'Delete', icon: '\ud83d\uddd1\ufe0f', rememberKey: 'delete' })) return;
+        _quickActionBusy = true;
+        showStatus(`Deleting ${count} from ${name}...`);
+        try {
+            const ids = await getSenderIds(email);
+            await apiCall('/api/delete', {message_ids: ids, sender: email});
+            trackDeleted(ids.length);
+            removeSenderByEmail(email);
+            showStatusWithUndo(`Deleted ${ids.length} messages from ${name}`);
+        } catch (err) {
+            showStatus(`Error: ${err.message}`, 5000);
+        } finally { _quickActionBusy = false; }
+    }
+
+    async function quickBlock(email) {
+        if (_quickActionBusy) return;
+        const s = senderData.find(x => x.email === email);
+        if (!s) return;
+        const name = s.name;
+        if (!await showConfirm({ title: 'Block sender', message: `Block ${name}? Future emails will skip inbox.`, confirmText: 'Block', icon: '\ud83d\udeab', style: 'warn', rememberKey: 'block' })) return;
+        _quickActionBusy = true;
+        showStatus(`Blocking ${name}...`);
+        try {
+            const ids = await getSenderIds(email);
+            await apiCall('/api/block', {sender: email, message_ids: ids});
+            removeSenderByEmail(email);
+            showStatusWithUndo(`Blocked ${name} - future emails will skip inbox`);
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); } finally { _quickActionBusy = false; }
+    }
+
+    async function quickUnsubDelete(email) {
+        if (_quickActionBusy) return;
+        const s = senderData.find(x => x.email === email);
+        if (!s) return;
+        const count = s.count;
+        const name = s.name;
+        if (!await showConfirm({ title: 'Unsubscribe & delete', message: `Delete all ${count} emails from ${name} and auto-trash future ones?`, confirmText: 'Unsubscribe & Delete', icon: '\ud83d\uddd1\ufe0f', rememberKey: 'unsub' })) return;
+        _quickActionBusy = true;
+        showStatus(`Unsubscribing from ${name}...`);
+        try {
+            const ids = await getSenderIds(email);
+            await apiCall('/api/unsubscribe_and_delete', {sender: email, message_ids: ids});
+            trackDeleted(ids.length);
+            removeSenderByEmail(email);
+            showStatusWithUndo(`Unsubscribed & deleted ${ids.length} from ${name}`);
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); } finally { _quickActionBusy = false; }
+    }
+
+    // ---- Selection & bulk actions ----
+    function selectAllSpam() {
+        selectedSenders.clear();
+        senderData.filter(s => s.spam_score >= 50).forEach(s => selectedSenders.add(s.email));
+        updateSelection();
+        applySortAndFilter();
+    }
+
+    function toggleExpand(el) {
+        const card = el.closest('.sender-card');
+        const msgs = card.querySelector('.sender-messages');
+        const btn = card.querySelector('.expand-btn');
+        const isOpening = !msgs.classList.contains('open');
+        msgs.classList.toggle('open');
+        btn.classList.toggle('open');
+        btn.setAttribute('aria-expanded', msgs.classList.contains('open'));
+
+        // Lazy-load messages on first expand (from DB via API)
+        if (isOpening && !msgs.dataset.loaded) {
+            const email = card.dataset.email;
+            msgs.innerHTML = '<div style="padding:8px 16px; color:var(--text-secondary);">Loading...</div>';
+            fetch(`/api/sender_messages?email=${encodeURIComponent(email)}`)
+                .then(r => r.json()).then(messages => {
+                    msgs.innerHTML = messages.map(m => `
+                        <div class="message-row ${m.unread ? 'unread' : ''}">
+                            <span class="msg-subject">${escapeHtml(m.subject)}${m.snippet ? ` <span class="msg-snippet">- ${escapeHtml(m.snippet)}</span>` : ''}</span>
+                            <span class="msg-size">${formatSize(m.size)}</span>
+                            <span class="msg-date">${formatDate(m.date)}</span>
+                        </div>
+                    `).join('');
+                    msgs.dataset.loaded = '1';
+                }).catch(() => { msgs.innerHTML = '<div style="padding:8px 16px; color:#d93025;">Failed to load</div>'; });
+        }
+    }
+
+    function toggleSender(email, checked) {
+        if (checked) selectedSenders.add(email);
+        else selectedSenders.delete(email);
+        updateSelection();
+    }
+
+    function toggleSelectAll(el) {
+        document.querySelectorAll('.sender-card').forEach(card => {
+            const email = card.dataset.email;
+            const cb = card.querySelector('input[type="checkbox"]');
+            if (el.checked) { selectedSenders.add(email); cb.checked = true; card.classList.add('selected'); }
+            else { selectedSenders.delete(email); cb.checked = false; card.classList.remove('selected'); }
+        });
+        updateSelection();
+    }
+
+    function updateSelection() {
+        document.querySelectorAll('.sender-card').forEach(card => {
+            card.classList.toggle('selected', selectedSenders.has(card.dataset.email));
+        });
+        const actionBar = document.getElementById('actionBar');
+        if (selectedSenders.size > 0) {
+            const msgCount = getSelectedMessageIds().length;
+            document.getElementById('selectedCount').textContent = `${selectedSenders.size} senders (${msgCount} msgs)`;
+            actionBar.style.display = 'flex';
+        } else {
+            actionBar.style.display = 'none';
+        }
+    }
+
+    function clearSelection() {
+        selectedSenders.clear();
+        document.querySelectorAll('.sender-card input[type="checkbox"]').forEach(cb => cb.checked = false);
+        updateSelection();
+    }
+
+    async function getSelectedMessageIds() {
+        const ids = [];
+        for (const email of selectedSenders) {
+            const sids = await getSenderIds(email);
+            ids.push(...sids);
+        }
+        return ids;
+    }
+
+    function getSelectedEmails() { return [...selectedSenders]; }
+
+    async function archiveSelected() {
+        const count = [...selectedSenders].reduce((n, e) => n + (senderData.find(s => s.email === e)?.count || 0), 0);
+        if (!await showConfirm({ title: 'Archive messages', message: `Archive ~${count} messages from ${selectedSenders.size} senders?`, confirmText: 'Archive', icon: '\ud83d\udce6', style: 'warn', rememberKey: 'archive' })) return;
+        showStatus(`Archiving messages...`);
+        try {
+            const ids = await getSelectedMessageIds();
+            await apiCall('/api/archive', {message_ids: ids});
+            removeSenders(selectedSenders);
+            showStatusWithUndo(`Archived ${ids.length} messages`);
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); }
+    }
+
+    async function deleteSelected() {
+        const count = [...selectedSenders].reduce((n, e) => n + (senderData.find(s => s.email === e)?.count || 0), 0);
+        if (!await showConfirm({ title: 'Delete messages', message: `Trash ~${count} messages from ${selectedSenders.size} senders?`, confirmText: 'Delete', icon: '\ud83d\uddd1\ufe0f', rememberKey: 'delete' })) return;
+        showStatus(`Deleting messages...`);
+        try {
+            const ids = await getSelectedMessageIds();
+            await apiCall('/api/delete', {message_ids: ids});
+            trackDeleted(ids.length);
+            removeSenders(selectedSenders);
+            showStatusWithUndo(`Moved ${ids.length} messages to Trash`);
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); }
+    }
+
+    async function markReadSelected() {
+        showStatus(`Marking messages as read...`);
+        try {
+            const ids = await getSelectedMessageIds();
+            await apiCall('/api/mark_read', {message_ids: ids});
+            senderData.forEach(s => { if (selectedSenders.has(s.email)) { s.unread = 0; }});
+            applySortAndFilter();
+            showStatus(`Marked ${ids.length} messages as read`, 3000);
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); }
+    }
+
+    async function blockSelected() {
+        const emails = getSelectedEmails();
+        const count = [...selectedSenders].reduce((n, e) => n + (senderData.find(s => s.email === e)?.count || 0), 0);
+        if (!await showConfirm({ title: 'Block senders', message: `Block ${emails.length} senders? Archives ~${count} existing and auto-archives future emails.`, confirmText: 'Block All', icon: '\ud83d\udeab', style: 'warn', rememberKey: 'block' })) return;
+        showStatus(`Blocking 0 of ${emails.length} senders...`);
+        const succeeded = new Set();
+        let completed = 0;
+        const tasks = emails.map(email => async () => {
+            const sids = await getSenderIds(email);
+            await apiCall('/api/block', {sender: email, message_ids: sids});
+            succeeded.add(email);
+            completed++;
+            showStatus(`Blocking ${completed} of ${emails.length} senders...`);
+        });
+        const results = await parallelLimit(tasks, 5);
+        const failures = results.filter(r => r?.error);
+        if (failures.length > 0) showStatus(`${failures.length} sender(s) failed to block`, 5000);
+        if (succeeded.size > 0) {
+            removeSenders(succeeded);
+            showStatusWithUndo(`Blocked ${succeeded.size} senders`);
+        }
+    }
+
+    async function unsubDeleteSelected() {
+        const emails = getSelectedEmails();
+        const count = [...selectedSenders].reduce((n, e) => n + (senderData.find(s => s.email === e)?.count || 0), 0);
+        if (!await showConfirm({ title: 'Unsubscribe & delete', message: `Unsubscribe and delete from ${emails.length} senders (~${count} messages)? Future emails will be auto-trashed.`, confirmText: 'Unsubscribe & Delete', icon: '\ud83d\uddd1\ufe0f', rememberKey: 'unsub' })) return;
+        showStatus(`Unsubscribing from 0 of ${emails.length} senders...`);
+        const succeeded = new Set();
+        let totalDeleted = 0;
+        let completed = 0;
+        const tasks = emails.map(email => async () => {
+            const sids = await getSenderIds(email);
+            await apiCall('/api/unsubscribe_and_delete', {sender: email, message_ids: sids});
+            totalDeleted += sids.length;
+            succeeded.add(email);
+            completed++;
+            showStatus(`Unsubscribing from ${completed} of ${emails.length} senders...`);
+        });
+        const results = await parallelLimit(tasks, 5);
+        const failures = results.filter(r => r?.error);
+        if (failures.length > 0) showStatus(`${failures.length} sender(s) failed`, 5000);
+        if (succeeded.size > 0) {
+            trackDeleted(totalDeleted);
+            removeSenders(succeeded);
+            showStatusWithUndo(`Unsubscribed & deleted from ${succeeded.size} senders`);
+        }
+    }
+
+    // ---- Label & Filter modals ----
+    function applyLabelSelected() {
+        _modalLastFocused = document.activeElement;
+        document.getElementById('labelModal').classList.add('visible');
+        document.getElementById('labelSearch').focus();
+        renderLabels();
+    }
+    function closeLabelModal() { document.getElementById('labelModal').classList.remove('visible'); if (_modalLastFocused) { _modalLastFocused.focus(); _modalLastFocused = null; } }
+
+    function renderLabels(filter = '') {
+        const list = document.getElementById('labelList');
+        const filtered = allLabels.filter(l => l.name.toLowerCase().includes(filter.toLowerCase()));
+        list.innerHTML = filtered.map(l =>
+            `<button class="modal-label-item"
+                  onclick="applyLabel('${l.id}', '${escapeHtml(l.name)}')">${escapeHtml(l.name)}</button>`
+        ).join('') || '<p style="padding:8px; color:var(--text-secondary); font-size:13px;">No labels found</p>';
+    }
+    function filterLabels() { renderLabels(document.getElementById('labelSearch').value); }
+
+    async function applyLabel(labelId, labelName) {
+        closeLabelModal();
+        showStatus(`Applying "${labelName}"...`);
+        try {
+            const ids = await getSelectedMessageIds();
+            await apiCall('/api/label', {message_ids: ids, label_id: labelId});
+            showStatus(`Applied "${labelName}" to ${ids.length} messages`, 3000);
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); }
+    }
+
+    async function createAndApplyLabel() {
+        const name = document.getElementById('labelSearch').value.trim();
+        if (!name) return;
+        try {
+            const label = await apiCall('/api/labels/create', {name});
+            allLabels.push(label);
+            await applyLabel(label.id, label.name);
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); }
+    }
+
+    function createFilterSelected() {
+        const emails = getSelectedEmails();
+        if (emails.length !== 1) { showStatus('Select exactly one sender to create a filter.', 4000); return; }
+        _modalLastFocused = document.activeElement;
+        document.getElementById('filterSenderDisplay').textContent = emails[0];
+        document.getElementById('filterModal').classList.add('visible');
+    }
+    function closeFilterModal() { document.getElementById('filterModal').classList.remove('visible'); if (_modalLastFocused) { _modalLastFocused.focus(); _modalLastFocused = null; } }
+
+    async function confirmCreateFilter() {
+        const email = document.getElementById('filterSenderDisplay').textContent;
+        const action = {
+            archive: document.getElementById('filterArchive').checked,
+            mark_read: document.getElementById('filterMarkRead').checked,
+            delete: document.getElementById('filterDelete').checked,
+        };
+        closeFilterModal();
+        showStatus(`Creating filter for ${email}...`);
+        try {
+            await apiCall('/api/filter/create', {sender: email, action});
+            showStatus(`Filter created for ${email}`, 3000);
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); }
+    }
+
+    // ---- Undo ----
+    async function undoLast() {
+        showStatus('Undoing...');
+        try {
+            const data = await apiCall('/api/undo', {});
+            if (data.error) { showStatus(data.error, 3000); return; }
+            showStatusWithUndo('Undone! More actions available to undo');
+        } catch (e) {
+            showStatus('Undo failed', 3000);
+        }
+    }
+
+    // ---- Utilities ----
+    function trackDeleted(count) {
+        _sessionDeleted += count;
+        if (_sessionDeleted >= 50) showBmcToast('delete');
+    }
+
+    function removeSenderByEmail(email) {
+        senderData = senderData.filter(s => s.email !== email);
+        _allFilteredSenders = _allFilteredSenders.filter(s => s.email !== email);
+        selectedSenders.delete(email);
+        focusedCardIndex = -1;
+        const card = document.querySelector(`.sender-card[data-email="${CSS.escape(email)}"]`);
+        if (card) {
+            card.classList.add('removing');
+            card.addEventListener('transitionend', function handler(e) {
+                if (e.propertyName === 'max-height') {
+                    card.removeEventListener('transitionend', handler);
+                    card.remove();
+                }
+            });
+            // Fallback in case transitionend doesn't fire
+            setTimeout(() => { if (card.parentNode) card.remove(); }, 500);
+        }
+        updateSelection();
+        updateStats();
+        loadImpactStats();
+    }
+
+    function removeSenders(emails) {
+        senderData = senderData.filter(s => !emails.has(s.email));
+        _allFilteredSenders = _allFilteredSenders.filter(s => !emails.has(s.email));
+        selectedSenders.clear();
+        focusedCardIndex = -1;
+        emails.forEach(email => {
+            const card = document.querySelector(`.sender-card[data-email="${CSS.escape(email)}"]`);
+            if (card) {
+                card.classList.add('removing');
+                setTimeout(() => { if (card.parentNode) card.remove(); }, 500);
+            }
+        });
+        updateSelection();
+        updateStats();
+        loadImpactStats();
+    }
+
+    function refreshUI() {
+        updateSelection();
+        applySortAndFilter();
+        updateStats();
+        buildCategoryFilters();
+        loadImpactStats();
+        if (currentView === 'triage') renderTriageCard();
+    }
+
+    function updateStats() {
+        const total = senderData.reduce((sum, s) => sum + s.count, 0);
+        const unread = senderData.reduce((sum, s) => sum + s.unread, 0);
+        const size = senderData.reduce((sum, s) => sum + s.total_size, 0);
+        document.getElementById('stat-total').textContent = `${total} msgs`;
+        document.getElementById('stat-unread').textContent = `${unread} unread`;
+        document.getElementById('stat-senders').textContent = `${senderData.length} senders`;
+        document.getElementById('stat-size').textContent = formatSize(size);
+    }
+
+    // ---- Toast-based notifications (replaces status bar) ----
+    function showStatus(text, autoDismiss = 0) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'polite');
+        toast.innerHTML = `<span class="toast-text">${escapeHtml(text)}</span>`;
+
+        if (autoDismiss > 0) {
+            const timer = document.createElement('div');
+            timer.className = 'toast-timer';
+            toast.appendChild(timer);
+            requestAnimationFrame(() => {
+                timer.style.transition = `width ${autoDismiss}ms linear`;
+                timer.style.width = '0%';
+            });
+            setTimeout(() => dismissToast(toast), autoDismiss);
+        } else {
+            // No auto-dismiss: dismiss after 8s by default for non-undo toasts
+            setTimeout(() => dismissToast(toast), 8000);
+        }
+
+        container.appendChild(toast);
+        // Limit to 4 toasts — remove excess immediately
+        while (container.children.length > 4) {
+            container.removeChild(container.children[0]);
+        }
+    }
+
+    function showStatusWithUndo(text) {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'polite');
+
+        const timer = document.createElement('div');
+        timer.className = 'toast-timer';
+
+        toast.innerHTML = `<span class="toast-text">${escapeHtml(text)}</span><button onclick="undoLast(); dismissToast(this.closest('.toast'))">Undo</button>`;
+        toast.appendChild(timer);
+
+        requestAnimationFrame(() => {
+            timer.style.transition = 'width 15s linear';
+            timer.style.width = '0%';
+        });
+
+        container.appendChild(toast);
+        setTimeout(() => dismissToast(toast), 15000);
+
+        // Limit to 4 toasts — remove excess immediately
+        while (container.children.length > 4) {
+            container.removeChild(container.children[0]);
+        }
+    }
+
+    function dismissToast(toast) {
+        if (!toast || !toast.parentNode) return;
+        toast.classList.add('dismissing');
+        setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+    }
+
+    // ---- Buy Me a Coffee toast nudges (one per session total) ----
+    const _bmcShown = { scan: false, delete: false, insights: false };
+    let _bmcToastShown = false;
+    let _sessionDeleted = 0;
+
+    function showBmcToast(trigger) {
+        if (_bmcToastShown) return;
+        if (_bmcShown[trigger]) return;
+        _bmcToastShown = true;
+        _bmcShown[trigger] = true;
+        const messages = {
+            scan: 'Enjoying InboxDNA? Support the project!',
+            delete: 'You just cleaned 50+ emails! Keep InboxDNA alive:',
+            insights: 'Like these insights? Help keep InboxDNA free:'
+        };
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = 'toast';
+        toast.setAttribute('role', 'alert');
+        toast.setAttribute('aria-live', 'polite');
+        toast.innerHTML = `<span class="toast-text">${messages[trigger]} <a href="https://buymeacoffee.com/inboxdna" target="_blank" rel="noopener" style="color:#ffdd00;font-weight:600;text-decoration:underline;">Buy me a coffee &#9749;</a></span>`;
+        const timer = document.createElement('div');
+        timer.className = 'toast-timer';
+        toast.appendChild(timer);
+        requestAnimationFrame(() => {
+            timer.style.transition = 'width 10s linear';
+            timer.style.width = '0%';
+        });
+        container.appendChild(toast);
+        setTimeout(() => dismissToast(toast), 10000);
+        while (container.children.length > 4) {
+            container.removeChild(container.children[0]);
+        }
+    }
+
+    // ---- Better progress bar (CSS transition instead of setInterval) ----
+    function showProgress(show) {
+        const bar = document.getElementById('progressBar');
+        const fill = document.getElementById('progressFill');
+        if (show) {
+            bar.style.display = 'block';
+            fill.style.transition = 'none';
+            fill.style.width = '0%';
+            // Force reflow then start transition
+            fill.offsetWidth;
+            fill.style.transition = 'width 30s cubic-bezier(0.1, 0.05, 0, 1)';
+            fill.style.width = '90%';
+        } else {
+            fill.style.transition = 'width 0.3s';
+            fill.style.width = '100%';
+            setTimeout(() => { bar.style.display = 'none'; fill.style.width = '0%'; }, 300);
+        }
+    }
+
+    // ---- Confetti animation ----
+    function launchConfetti() {
+        const container = document.createElement('div');
+        container.className = 'confetti-container';
+        document.body.appendChild(container);
+
+        const colors = ['#1a73e8', '#ea4335', '#fbbc04', '#34a853', '#ff6d01', '#46bdc6', '#7627bb', '#f28b82'];
+
+        for (let i = 0; i < 40; i++) {
+            const piece = document.createElement('div');
+            piece.className = 'confetti-piece';
+            const color = colors[i % colors.length];
+            const left = Math.random() * 100;
+            const duration = 2 + Math.random() * 2;
+            const delay = Math.random() * 0.8;
+            const size = 6 + Math.random() * 8;
+            const shapes = ['50%', '0'];
+            const borderRadius = shapes[Math.floor(Math.random() * shapes.length)];
+
+            piece.style.cssText = `
+                left: ${left}%;
+                width: ${size}px;
+                height: ${size}px;
+                background: ${color};
+                border-radius: ${borderRadius};
+                animation-duration: ${duration}s;
+                animation-delay: ${delay}s;
+            `;
+            container.appendChild(piece);
+        }
+
+        // Remove after animation
+        setTimeout(() => { if (container.parentNode) container.parentNode.removeChild(container); }, 5000);
+    }
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        try {
+            const d = new Date(dateStr);
+            const now = new Date();
+            if (d.toDateString() === now.toDateString()) return d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+            return d.toLocaleDateString([], {month: 'short', day: 'numeric'});
+        } catch { return dateStr.substring(0, 16); }
+    }
+
+    function formatSize(bytes) {
+        if (!bytes || bytes === 0) return '0 B';
+        if (bytes < 1024) return bytes + ' B';
+        if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+        return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+</script>
+    <div id="liveAnnounce" class="visually-hidden" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

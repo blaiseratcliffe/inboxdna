@@ -1,0 +1,36 @@
+# User tokens (generated at runtime, never commit)
+token.json
+**/token.json
+
+# User-provided credential override (optional)
+credentials.json
+
+# Bundled credentials at root (only the copy inside inboxdna/ should be committed)
+/client_secret_*.json
+
+# Database
+data/*
+!data/.gitkeep
+*.db
+*.db-shm
+*.db-wal
+stats.json
+
+# Python
+venv/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+*.spec
+
+# Environment
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Claude Code
+.claude/

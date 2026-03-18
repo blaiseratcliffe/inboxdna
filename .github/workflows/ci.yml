@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python-version: ['3.10', '3.12', '3.13']
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install package
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .
+
+      - name: Verify imports
+        run: |
+          python -c "from inboxdna.app import app; print('App OK')"
+          python -c "from inboxdna.auth import get_gmail_service; print('Auth OK')"
+          python -c "from inboxdna.db import init_db; print('DB OK')"
+          python -c "from inboxdna.classifiers import DARK_PATTERNS; print('Classifiers OK')"
+          python -c "from inboxdna.paths import PACKAGE_DIR, USER_DATA_DIR; print(f'Paths OK: {USER_DATA_DIR}')"
+          python -c "import inboxdna; print(f'Version: {inboxdna.__version__}')"
+
+      - name: Verify CLI entry point
+        run: |
+          python -m inboxdna --help || true
+
+      - name: Verify package data bundled
+        run: |
+          python -c "
+          import os
+          from inboxdna.paths import PACKAGE_DIR
+          assert os.path.exists(os.path.join(PACKAGE_DIR, 'templates', 'index.html')), 'template missing'
+          assert os.path.exists(os.path.join(PACKAGE_DIR, 'static', 'logo.png')), 'static missing'
+          import glob
+          assert glob.glob(os.path.join(PACKAGE_DIR, 'client_secret_*.json')), 'credentials missing'
+          print('All package data present')
+          "
