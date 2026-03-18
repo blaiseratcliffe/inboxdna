@@ -11,6 +11,7 @@ Cloud email cleaners (Clean Email, SaneBox, Unroll.me) require full access to yo
 ## Features
 
 - **Bulk Cleanup** — Scan your inbox, see top senders, delete/block/unsubscribe in bulk
+- **Triage Mode** — Rapid one-click review: keep, archive, delete, block, or unsubscribe per sender
 - **Inbox Hygiene Score** — 0-100 composite score with streaks and badges
 - **Storage Cost Visualizer** — Treemap of storage by sender, Google One cost estimates
 - **Subscription Decay Radar** — Spot subscriptions you've stopped reading
@@ -20,7 +21,6 @@ Cloud email cleaners (Clean Email, SaneBox, Unroll.me) require full access to yo
 - **Ghost Rules** — Auto-suggest Gmail filters from your triage patterns
 - **Email DNA Cards** — Deep profile for any sender (frequency, tracking pixels, dark patterns)
 - **Privacy Audit** — Scan for tracking pixels, sensitive data exposure, known trackers
-- **Triage Mode** — Rapid one-click review: keep, archive, delete, block, or unsubscribe per sender
 - **Dark Mode** — Automatic (follows OS) or manual toggle between light, dark, and auto themes
 - **Keyboard Shortcuts** — J/K to navigate, X to select, E to archive, ? for help
 
@@ -56,11 +56,11 @@ Download the binary for your platform from the [Releases](https://github.com/bla
 
 ---
 
-Open http://localhost:5000 in your browser. On first run, a browser window will open asking you to sign in with your Google account.
+InboxDNA automatically opens your browser on startup. On first run you'll be asked to sign in with your Google account.
 
 ## Google Sign-In
 
-InboxDNA includes pre-configured OAuth credentials so you can start using it immediately — no Google Cloud setup required.
+InboxDNA includes pre-configured OAuth credentials so you can start using it immediately — no Google Cloud setup required. Just click **Scan Inbox** and sign in when prompted.
 
 When you authorize InboxDNA for the first time, Google will show a warning that says **"Google hasn't verified this app"**. This is normal and expected for open-source projects. To proceed:
 
@@ -83,6 +83,13 @@ The warning does **not** mean InboxDNA is unsafe. It means Google hasn't reviewe
 | `gmail.settings.basic` | Create email filters | Ghost Rules (auto-filter suggestions) |
 
 InboxDNA does **not** request permission to send emails on your behalf.
+
+### Switching accounts
+
+Click the **Sign out** dropdown in the top-right corner of the app:
+
+- **Sign out** — Removes your auth token and clears the message cache. Sign in with a different account on next scan.
+- **Delete local data & sign out** — Permanently deletes all local data (database, history, scores) and signs out.
 
 ### Using your own credentials (optional)
 
@@ -118,10 +125,11 @@ You can override the data location on any platform by setting the `INBOXDNA_DATA
 
 ## Tech Stack
 
-- **Backend:** Python / Flask
+- **Backend:** Python / Flask, served via [Waitress](https://docs.pylonsproject.org/projects/waitress/) (production WSGI server)
 - **Frontend:** Single-page HTML with inline JS/CSS, WCAG 2.1 AA accessible
-- **Database:** SQLite with WAL mode (local)
+- **Database:** SQLite with WAL mode (local, per-thread connections)
 - **API:** Google Gmail API via OAuth 2.0
+- **CI/CD:** GitHub Actions — automated testing on 3 OSes / 3 Python versions, cross-platform release builds
 
 ## Security
 
@@ -132,14 +140,14 @@ InboxDNA includes the following security measures:
 - Security headers: CSP, X-Frame-Options DENY, X-Content-Type-Options nosniff
 - Input validation on all API endpoints (message ID format, type, length caps)
 - OAuth token stored with restrictive file permissions (`0600`)
-- Thread-safe auth with locking, per-thread SQLite connections
-- SQLite busy timeout to prevent concurrent write errors
+- Thread-safe auth with locking, per-thread SQLite connections with busy timeout
+- Production WSGI server (Waitress) — no debug mode warnings
 
 ## Privacy
 
 InboxDNA is 100% local. No telemetry, no analytics, no external services beyond the Gmail API. Your data stays in a SQLite file on your machine.
 
-Your OAuth token is stored locally and is never transmitted anywhere. You can revoke access at any time from your [Google Account permissions page](https://myaccount.google.com/permissions).
+Your OAuth token is stored locally and is never transmitted anywhere. You can revoke access at any time from your [Google Account permissions page](https://myaccount.google.com/permissions), or use the **Sign out** button in the app.
 
 ## Building standalone executables
 
@@ -148,11 +156,11 @@ pip install pyinstaller
 python build_exe.py
 ```
 
-This produces a single-file binary in `dist/` for whatever platform you're building on. PyInstaller must be run on each target OS — cross-compilation is not supported.
+This produces a single-file binary in `dist/` for whatever platform you're building on. PyInstaller must be run on each target OS — cross-compilation is not supported. Releases are built automatically via GitHub Actions when a version tag is pushed.
 
 | Build OS | Output |
 |----------|--------|
-| Windows | `dist/InboxDNA.exe` (34 MB) |
+| Windows | `dist/InboxDNA.exe` (~34 MB) |
 | macOS | `dist/InboxDNA` (Unix binary) |
 | Linux | `dist/InboxDNA` (Unix binary) |
 
