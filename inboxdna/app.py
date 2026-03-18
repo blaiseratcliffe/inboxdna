@@ -389,6 +389,14 @@ def fetch_inbox_messages(max_results=500, unread_only=False, force_refresh=False
 
 # --- Routes ---
 
+@app.route("/api/auth_status")
+def api_auth_status():
+    """Check if user is signed in (token exists and is valid)."""
+    from inboxdna.auth import TOKEN_FILE
+    has_token = os.path.exists(TOKEN_FILE)
+    return jsonify({"signed_in": has_token})
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
@@ -1140,11 +1148,69 @@ def api_clear_cache():
     return jsonify({"cleared": True})
 
 
+@app.route("/api/logout", methods=["POST"])
+@require_json
+def api_logout():
+    """Sign out: remove OAuth token and clear message cache."""
+    from inboxdna.auth import TOKEN_FILE, invalidate_service
+    if os.path.exists(TOKEN_FILE):
+        os.remove(TOKEN_FILE)
+    invalidate_service()
+    db.clear_all_messages()
+    return jsonify({"logged_out": True})
+
+
+@app.route("/api/logout/full", methods=["POST"])
+@require_json
+def api_logout_full():
+    """Sign out and delete all local data (database, stats, token)."""
+    global _db_initialized
+    from inboxdna.auth import TOKEN_FILE, invalidate_service
+    invalidate_service()
+    # Close the database connection before deleting (required on Windows)
+    db.close_db()
+    _db_initialized = False
+    files_to_delete = [
+        TOKEN_FILE,
+        db.DB_PATH,
+        db.DB_PATH + "-wal",
+        db.DB_PATH + "-shm",
+        db.STATS_JSON,
+        os.path.join(paths.USER_DATA_DIR, ".flask_secret"),
+    ]
+    for f in files_to_delete:
+        try:
+            if os.path.exists(f):
+                os.remove(f)
+        except OSError:
+            pass
+    return jsonify({"logged_out": True, "data_deleted": True})
+
+
 def main():
     """Entry point for the CLI and python -m inboxdna."""
-    print(f"Starting InboxDNA at http://localhost:5000")
-    print(f"Data stored in: {paths.USER_DATA_DIR}")
-    app.run(debug=False, host="127.0.0.1", port=5000, threaded=True)
+    import threading
+    import webbrowser
+
+    port = 5000
+    url = f"http://localhost:{port}"
+
+    print(f"InboxDNA v{__import__('inboxdna').__version__}")
+    print(f"Opening {url}")
+    print(f"Data: {paths.USER_DATA_DIR}")
+    print(f"Press Ctrl+C to quit")
+
+    # Open browser after a short delay (server needs to start first)
+    threading.Timer(1.5, lambda: webbrowser.open(url)).start()
+
+    try:
+        from waitress import serve
+        serve(app, host="127.0.0.1", port=port)
+    except ImportError:
+        # Fall back to Flask dev server if waitress not installed
+        import logging
+        logging.getLogger("werkzeug").setLevel(logging.ERROR)
+        app.run(debug=False, host="127.0.0.1", port=port, threaded=True)
 
 
 if __name__ == "__main__":

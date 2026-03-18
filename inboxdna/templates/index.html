@@ -163,6 +163,10 @@
             left: 8px;
         }
 
+        /* Logout dropdown menu */
+        #logoutMenu.visible { display: block !important; }
+        #logoutMenu button:hover { background: var(--hover) !important; }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: var(--bg);
@@ -737,6 +741,13 @@
             </div>
             <a href="https://buymeacoffee.com/inboxdna" target="_blank" rel="noopener" class="bmc-btn" title="Support InboxDNA">&#9749; Buy me a coffee</a>
             <button id="themeToggle" title="Toggle theme" onclick="cycleTheme()">&#128260;</button>
+            <div style="position:relative;">
+                <button id="logoutBtn" title="Sign out / switch account" onclick="document.getElementById('logoutMenu').classList.toggle('visible')" style="background:none; border:1px solid rgba(255,255,255,0.4); color:white; padding:5px 10px; border-radius:6px; cursor:pointer; font-size:12px;">Sign out &#9662;</button>
+                <div id="logoutMenu" style="display:none; position:absolute; right:0; top:100%; margin-top:4px; background:var(--surface); border:1px solid var(--border); border-radius:8px; box-shadow:0 4px 12px rgba(0,0,0,0.15); min-width:200px; z-index:200; overflow:hidden;">
+                    <button onclick="logout()" style="display:block; width:100%; padding:10px 16px; border:none; background:none; color:var(--text); font-size:13px; text-align:left; cursor:pointer;">Sign out</button>
+                    <button onclick="logoutFull()" style="display:block; width:100%; padding:10px 16px; border:none; border-top:1px solid var(--border); background:none; color:#d93025; font-size:13px; text-align:left; cursor:pointer;">Delete local data &amp; sign out</button>
+                </div>
+            </div>
         </div>
     </header>
 
@@ -799,10 +810,10 @@
     <main id="content">
         <div class="empty-state" id="placeholder">
             <div class="empty-icon" aria-hidden="true">&#128233;</div>
-            <h2>Gmail Inbox Organizer</h2>
-            <p>Scan your inbox to find bulk senders, marketing emails, and cleanup opportunities.</p>
-            <div class="steps">
-                <div><span>1</span> Click Scan Inbox to analyze your messages</div>
+            <h2 id="placeholderTitle">Gmail Inbox Organizer</h2>
+            <p id="placeholderMsg">Scan your inbox to find bulk senders, marketing emails, and cleanup opportunities.</p>
+            <div class="steps" id="placeholderSteps">
+                <div><span>1</span> Click <b>Scan Inbox</b> to connect your Gmail and analyze messages</div>
                 <div><span>2</span> Review senders sorted by volume or spam score</div>
                 <div><span>3</span> Archive, delete, or unsubscribe in bulk</div>
             </div>
@@ -900,6 +911,36 @@
         localStorage.setItem('inboxdna-theme', next);
         applyTheme(next);
     }
+
+    // ---- Logout / switch account ----
+    async function logout() {
+        document.getElementById('logoutMenu').classList.remove('visible');
+        if (!await showConfirm({ title: 'Sign out', message: 'Sign out and clear cached data? You can sign in with a different account on next launch.', confirmText: 'Sign out', icon: '\ud83d\udeaa', style: 'warn' })) return;
+        try {
+            await apiCall('/api/logout', {});
+            showStatus('Signed out successfully. Reloading...', 2000);
+            setTimeout(() => window.location.reload(), 1500);
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); }
+    }
+
+    async function logoutFull() {
+        document.getElementById('logoutMenu').classList.remove('visible');
+        if (!await showConfirm({ title: 'Delete all local data', message: 'This will permanently delete your local database, cleanup history, scores, and sign you out. This cannot be undone.', confirmText: 'Delete & sign out', icon: '\ud83d\uddd1\ufe0f' })) return;
+        try {
+            await apiCall('/api/logout/full', {});
+            showStatus('All local data deleted. Reloading...', 2000);
+            setTimeout(() => window.location.reload(), 1500);
+        } catch (err) { showStatus(`Error: ${err.message}`, 5000); }
+    }
+
+    // Close logout menu when clicking outside
+    document.addEventListener('click', function(e) {
+        const menu = document.getElementById('logoutMenu');
+        const btn = document.getElementById('logoutBtn');
+        if (menu && !menu.contains(e.target) && e.target !== btn) {
+            menu.classList.remove('visible');
+        }
+    });
 
     // ---- Themed confirm modal ----
     const _skipConfirm = {};
@@ -1028,6 +1069,20 @@
         if (view === 'triage') startTriage();
         if (view === 'insights') loadInsights();
     }
+
+    // ---- Auth status check on load ----
+    // Check auth on load — update placeholder if not signed in
+    fetch('/api/auth_status').then(r => r.json()).then(data => {
+        const title = document.getElementById('placeholderTitle');
+        if (!data.signed_in && title) {
+            title.textContent = 'Connect Your Gmail';
+            document.getElementById('placeholderMsg').textContent = 'Click Scan Inbox to sign in with Google and start analyzing your inbox.';
+            document.getElementById('placeholderSteps').innerHTML =
+                '<div><span>1</span> Click <b>Scan Inbox</b> above</div>' +
+                '<div><span>2</span> Sign in with your Google account</div>' +
+                '<div><span>3</span> Allow InboxDNA to read your inbox</div>';
+        }
+    }).catch(e => console.warn('Auth check failed:', e));
 
     // ---- Impact stats ----
     async function loadImpactStats() {

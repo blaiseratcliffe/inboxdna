@@ -391,6 +391,13 @@ def clear_all_messages():
     db.commit()
 
 
+def close_db():
+    """Close the current thread's database connection."""
+    if hasattr(_local, "conn") and _local.conn is not None:
+        _local.conn.close()
+        _local.conn = None
+
+
 # --- Undo stack ---
 
 def push_undo(action, message_ids, sender=None, filter_id=None):
